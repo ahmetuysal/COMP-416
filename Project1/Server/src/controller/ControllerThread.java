@@ -41,7 +41,7 @@ public class ControllerThread extends Thread {
                 warMessage = (WARMessage) objectInputStream.readObject();
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
                 WARMessage warResponse = handleWARMessage(warMessage);
-                objectOutputStream.writeObject(warMessage);
+                objectOutputStream.writeObject(warResponse);
                 System.out.println("Response " + warMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
                 objectOutputStream.flush();
             }
