@@ -68,6 +68,17 @@ public class ControllerThread extends Thread {
         }
     }
 
+    public void sendMatchmakingMessage() {
+        try {
+            WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
+            objectOutputStream.writeObject(matchmakingMessage);
+            System.out.println("Response " + matchmakingMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private WARMessage handleWARMessage(WARMessage warMessage) {
         // TODO: implement WARMessage handling
         return warMessage;
@@ -95,6 +106,9 @@ public class ControllerThread extends Thread {
                     return false;
                 }
                 break;
+            // matchmaking
+            case 5:
+                return warMessage.getPayload() == null || warMessage.getPayload().length == 0;
             // invalid WARMessage type
             default:
                 return  false;

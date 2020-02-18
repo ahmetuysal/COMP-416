@@ -10,6 +10,7 @@ import java.net.Socket;
  */
 public class Server {
     private ServerSocket serverSocket;
+    private ControllerThread waitingPlayerThread = null;
 
     /**
      * Initiates a server socket on the input port, listens to the line, on receiving an incoming
@@ -41,6 +42,14 @@ public class Server {
             System.out.println("A connection was established with a client on the address of " + socket.getRemoteSocketAddress());
             ControllerThread controllerThread = new ControllerThread(socket);
             controllerThread.start();
+            if (waitingPlayerThread == null) {
+                waitingPlayerThread = controllerThread;
+            }
+            else {
+                waitingPlayerThread.sendMatchmakingMessage();
+                controllerThread.sendMatchmakingMessage();
+                waitingPlayerThread = null;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Server Class.Connection establishment error inside listen and accept function");
