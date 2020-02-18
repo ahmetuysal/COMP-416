@@ -27,7 +27,7 @@ public class Server {
             System.err.println("Server class.Constructor exception on opening a server socket");
         }
         while (true) {
-            ListenAndAccept();
+            listenAndAccept();
         }
     }
 
@@ -35,7 +35,7 @@ public class Server {
      * Listens to the line and starts a connection on receiving a request from the client
      * The connection is started and initiated as a ServerThread object
      */
-    private void ListenAndAccept() {
+    private void listenAndAccept() {
         Socket socket;
         try {
             socket = serverSocket.accept();
