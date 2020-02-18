@@ -46,9 +46,14 @@ public class Server {
                 waitingPlayerThread = controllerThread;
             }
             else {
-                waitingPlayerThread.sendMatchmakingMessage();
-                controllerThread.sendMatchmakingMessage();
-                waitingPlayerThread = null;
+                if (waitingPlayerThread.isSocketOpen()) {
+                    waitingPlayerThread.sendMatchmakingMessage();
+                    controllerThread.sendMatchmakingMessage();
+                    waitingPlayerThread = null;
+                }
+                else {
+                    waitingPlayerThread = controllerThread;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

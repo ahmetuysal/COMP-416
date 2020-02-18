@@ -22,6 +22,11 @@ public class ControllerThread extends Thread {
         this.socket = socket;
     }
 
+    public boolean isSocketOpen() {
+        return this.socket.isConnected() && !this.socket.isClosed();
+    }
+
+
     public void run() {
         try {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
