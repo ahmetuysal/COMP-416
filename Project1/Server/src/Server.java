@@ -9,7 +9,6 @@ import java.net.Socket;
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class Server {
-    public static final int DEFAULT_SERVER_PORT = 4444;
     private ServerSocket serverSocket;
 
     /**

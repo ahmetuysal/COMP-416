@@ -51,7 +51,7 @@ public class ControllerThread extends Thread {
                 System.out.println("Closing the connection");
                 if (objectInputStream != null) {
                     objectInputStream.close();
-                    System.err.println(" Socket Input Stream Closed");
+                    System.err.println("Socket Input Stream Closed");
                 }
                 if (objectOutputStream != null) {
                     objectOutputStream.close();
