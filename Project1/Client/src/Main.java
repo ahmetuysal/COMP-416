@@ -1,5 +1,6 @@
 import configuration.Configuration;
 import contract.WARMessage;
+import game.WARGame;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,17 +18,6 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ConnectionToServer connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"),
-                Integer.parseInt(Configuration.getInstance().getProperty("server.port")));
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter a message for the echo");
-        String message = scanner.nextLine();
-        while (!message.equals("QUIT"))
-        {
-            WARMessage warMessage = new WARMessage((byte) 1, new byte[]{2});
-            System.out.println("Response from server: " + connectionToServer.sendForAnswer(warMessage));
-            message = scanner.nextLine();
-        }
-        connectionToServer.disconnect();
+        WARGame warGame = new WARGame();
     }
 }

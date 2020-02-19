@@ -1,3 +1,5 @@
+package connection;
+
 import contract.WARMessage;
 
 import java.io.IOException;
@@ -35,6 +37,18 @@ public class ConnectionToServer {
         }
     }
 
+
+    public WARMessage waitForAnswer() {
+        WARMessage response = null;
+        try {
+            response = (WARMessage) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+
     /**
      * sends the message String to the server and retrieves the answer
      *
@@ -49,11 +63,10 @@ public class ConnectionToServer {
             response = (WARMessage) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            System.out.println("ConnectionToServer. SendForAnswer. Socket read Error");
+            System.out.println("Socket read Error");
         }
         return response;
     }
-
 
     /**
      * Disconnects the socket and closes the buffers
@@ -63,7 +76,7 @@ public class ConnectionToServer {
             objectInputStream.close();
             objectOutputStream.close();
             socket.close();
-            System.out.println("ConnectionToServer. SendForAnswer. Connection Closed");
+            System.out.println("Connection Closed");
         } catch (IOException e) {
             e.printStackTrace();
         }

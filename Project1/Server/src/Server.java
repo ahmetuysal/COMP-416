@@ -1,4 +1,6 @@
 import controller.ControllerThread;
+import domain.Player;
+import service.WarService;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -40,18 +42,18 @@ public class Server {
         try {
             socket = serverSocket.accept();
             System.out.println("A connection was established with a client on the address of " + socket.getRemoteSocketAddress());
-            ControllerThread controllerThread = new ControllerThread(socket);
+            Player newPlayer = new Player();
+            ControllerThread controllerThread = new ControllerThread(socket, newPlayer);
             controllerThread.start();
             if (waitingPlayerThread == null) {
                 waitingPlayerThread = controllerThread;
-            }
-            else {
+            } else {
                 if (waitingPlayerThread.isSocketOpen()) {
                     waitingPlayerThread.sendMatchmakingMessage();
                     controllerThread.sendMatchmakingMessage();
+                    WarService.getInstance().initializeGame(waitingPlayerThread.getPlayer(), controllerThread.getPlayer());
                     waitingPlayerThread = null;
-                }
-                else {
+                } else {
                     waitingPlayerThread = controllerThread;
                 }
             }

@@ -1,6 +1,7 @@
 package controller;
 
 import contract.WARMessage;
+import domain.Player;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,18 +15,23 @@ public class ControllerThread extends Thread {
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     private Socket socket;
+    private Player player;
 
     /**
      * @param socket Input socket to create a thread on
      */
-    public ControllerThread(Socket socket) {
+    public ControllerThread(Socket socket, Player player) {
         this.socket = socket;
+        this.player = player;
     }
 
     public boolean isSocketOpen() {
         return this.socket.isConnected() && !this.socket.isClosed();
     }
 
+    public Player getPlayer() {
+        return player;
+    }
 
     public void run() {
         try {
@@ -41,7 +47,7 @@ public class ControllerThread extends Thread {
                 warMessage = (WARMessage) objectInputStream.readObject();
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
                 WARMessage warResponse = handleWARMessage(warMessage);
-                objectOutputStream.writeObject(warMessage);
+                objectOutputStream.writeObject(warResponse);
                 System.out.println("Response " + warMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
                 objectOutputStream.flush();
             }
@@ -85,7 +91,14 @@ public class ControllerThread extends Thread {
     }
 
     private WARMessage handleWARMessage(WARMessage warMessage) {
-        // TODO: implement WARMessage handling
+        if (validateWarMessage(warMessage)) {
+            // TODO: implement WARMessage handling
+            if (warMessage.getType() == 0) {
+
+            }
+        } else {
+            // TODO: send error message
+        }
         return warMessage;
     }
 
@@ -95,19 +108,19 @@ public class ControllerThread extends Thread {
         switch (warMessage.getType()) {
             // want game
             case 0:
-            // play card
+                // play card
             case 2:
-            // play result
+                // play result
             case 3:
-            // game result
+                // game result
             case 4:
-                if (warMessage.getPayload() == null || warMessage.getPayload().length!= 1) {
+                if (warMessage.getPayload() == null || warMessage.getPayload().length != 1) {
                     return false;
                 }
                 break;
             // game start
             case 1:
-                if (warMessage.getPayload() == null || warMessage.getPayload().length!= 26) {
+                if (warMessage.getPayload() == null || warMessage.getPayload().length != 26) {
                     return false;
                 }
                 break;
@@ -116,7 +129,7 @@ public class ControllerThread extends Thread {
                 return warMessage.getPayload() == null || warMessage.getPayload().length == 0;
             // invalid WARMessage type
             default:
-                return  false;
+                return false;
         }
 
         // check card values
