@@ -8,6 +8,8 @@ import com.mongodb.ServerAddress;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
+import controller.WARData;
+import org.bson.Document;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -15,6 +17,8 @@ import com.mongodb.client.MongoDatabase;
 public class MongoDBWARRepository implements WARRepository {
 
     private static MongoDBWARRepository _instance;
+    private static final String name = "WARRepo";
+    private static final String collection = "WARGames";
 
     public static synchronized MongoDBWARRepository getInstance() {
         if (_instance == null) {
@@ -29,16 +33,19 @@ public class MongoDBWARRepository implements WARRepository {
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
         mongoClient = MongoClients.create();
-        WARDatabase = mongoClient.getDatabase("WARGame");
+        WARDatabase = mongoClient.getDatabase(name);
     }
 
     @Override
-    public void saveGame() {
-        
+    public void insertGame(WARData gameData) {
+
+        Document doc2insert = gameData.generateWARDoc();
+        WARDatabase.getCollection(collection).insertOne(doc2insert);
+
     }
 
     @Override
-    public void readGame() {
+    public void retrieveGame() {
 
     }
 
