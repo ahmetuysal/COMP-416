@@ -31,4 +31,24 @@ public class MongoDBWARRepository implements WARRepository {
         mongoClient = MongoClients.create();
         WARDatabase = mongoClient.getDatabase("WARGame");
     }
+
+    @Override
+    public void saveGame() {
+        
+    }
+
+    @Override
+    public void readGame() {
+
+    }
+
+    @Override
+    public void updateGame() {
+
+    }
+
+    @Override
+    public void deleteGame() {
+
+    }
 }

@@ -5,4 +5,12 @@ package repository;
  */
 public interface WARRepository {
 
+
+    public void saveGame( /* need params */ );
+    public void readGame( /* need params */ );
+    public void updateGame( /* need params */ );
+    public void deleteGame( /* need params */ );
+
+
+
 }
