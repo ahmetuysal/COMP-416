@@ -3,90 +3,33 @@ package controller;
 import contract.WARMessage;
 import domain.Player;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
 public class ControllerThread extends Thread {
-    private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
-    private Socket socket;
-    private Player player;
 
-    /**
-     * @param socket Input socket to create a thread on
-     */
-    public ControllerThread(Socket socket, Player player) {
-        this.socket = socket;
-        this.player = player;
+    private static final ControllerThread _instance = new ControllerThread();
+
+    private ControllerThread() {}
+
+    public static ControllerThread getInstance() {
+        return _instance;
     }
 
-    public boolean isSocketOpen() {
-        return this.socket.isConnected() && !this.socket.isClosed();
-    }
+    private LinkedBlockingQueue<WARMessage> waitingMessages;
 
-    public Player getPlayer() {
-        return player;
+    public void queueIncomingWARMessage(WARMessage incomingMessage, Player source) {
+        waitingMessages.add(incomingMessage);
     }
 
     public void run() {
-        try {
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            WARMessage warMessage;
-            while (true) {
-                warMessage = (WARMessage) objectInputStream.readObject();
-                System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
-                WARMessage warResponse = handleWARMessage(warMessage);
-                objectOutputStream.writeObject(warResponse);
-                System.out.println("Response " + warMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
-                objectOutputStream.flush();
+        while (true) {
+            if (!waitingMessages.isEmpty()) {
+                WARMessage message = waitingMessages.poll();
+                handleWARMessage(message);
             }
-        } catch (IOException e) {
-            System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
-        } catch (NullPointerException e) {
-            System.err.println("Server Thread. Run.Client " + this.getName() + " Closed");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                System.out.println("Closing the connection");
-                if (objectInputStream != null) {
-                    objectInputStream.close();
-                    System.err.println("Socket Input Stream Closed");
-                }
-                if (objectOutputStream != null) {
-                    objectOutputStream.close();
-                    System.err.println("Socket Out Closed");
-                }
-                if (socket != null) {
-                    socket.close();
-                    System.err.println("Socket Closed");
-                }
-
-            } catch (IOException ie) {
-                System.err.println("Socket Close Error");
-            }
-        }
-    }
-
-    public void sendMatchmakingMessage() {
-        try {
-            WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
-            objectOutputStream.writeObject(matchmakingMessage);
-            System.out.println("Response " + matchmakingMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
-            objectOutputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

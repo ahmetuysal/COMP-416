@@ -1,4 +1,6 @@
 import configuration.Configuration;
+import controller.ControllerThread;
+import network.Server;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,6 +17,8 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        ControllerThread controllerThread = ControllerThread.getInstance();
+        controllerThread.start();
         new Server(Integer.parseInt(Configuration.getInstance().getProperty("server.port")));
     }
 }
