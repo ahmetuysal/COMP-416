@@ -1,14 +1,18 @@
 package domain;
 
+import java.util.List;
+
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
 public class Player {
     private String name;
-    private byte[] cards;
+    private List<Byte> cards;
     private int point;
+    private byte waitingPlayedCard;
 
     public Player() {
+        waitingPlayedCard = -1;
     }
 
     public String getName() {
@@ -19,19 +23,31 @@ public class Player {
         this.name = name;
     }
 
-    public byte[] getCards() {
+    public List<Byte> getCards() {
         return cards;
     }
 
-    public void setCards(byte[] cards) {
+    public void setCards(List<Byte> cards) {
         this.cards = cards;
+    }
+
+    public boolean removeCard(byte card) {
+        return cards.remove((Byte) card);
     }
 
     public int getPoint() {
         return point;
     }
 
-    public void setPoint(int point) {
-        this.point = point;
+    public void incrementPoint() {
+        this.point++;
+    }
+
+    public byte getWaitingPlayedCard() {
+        return waitingPlayedCard;
+    }
+
+    public void setWaitingPlayedCard(byte waitingPlayedCard) {
+        this.waitingPlayedCard = waitingPlayedCard;
     }
 }

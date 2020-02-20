@@ -1,11 +1,9 @@
 import configuration.Configuration;
-import contract.WARMessage;
 import game.WARGame;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Scanner;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz

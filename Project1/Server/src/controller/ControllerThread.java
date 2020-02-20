@@ -37,16 +37,17 @@ public class ControllerThread extends Thread {
         }
     }
 
-    private WARMessage handleWARMessage(WARMessage warMessage, Player player) {
+    private void handleWARMessage(WARMessage warMessage, Player player) {
         if (validateWarMessage(warMessage)) {
             // TODO: implement WARMessage handling
             if (warMessage.getType() == 0) {
                 warService.handleWantGameMessage(warMessage, player);
+            } else if (warMessage.getType() == 2) {
+                warService.handlePlayCardMessage(warMessage, player);
             }
         } else {
             // TODO: send error message
         }
-        return warMessage;
     }
 
 
@@ -55,7 +56,8 @@ public class ControllerThread extends Thread {
         switch (warMessage.getType()) {
             // want game
             case 0:
-                // play card
+                return warMessage.getPayload() != null && !new String(warMessage.getPayload()).isEmpty();
+            // play card
             case 2:
                 // play result
             case 3:
@@ -80,6 +82,7 @@ public class ControllerThread extends Thread {
         }
 
         // check card values
+        // should only run on card related messages
         for (Byte card : warMessage.getPayload()) {
             if (card < 0 || card > 51) {
                 return false;

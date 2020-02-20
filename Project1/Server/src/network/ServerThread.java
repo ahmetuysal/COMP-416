@@ -21,7 +21,6 @@ public class ServerThread extends Thread {
     private Socket socket;
     private Player player;
 
-
     /**
      * @param socket Input socket to create a thread on
      */
@@ -57,7 +56,6 @@ public class ServerThread extends Thread {
                 warMessage = (WARMessage) objectInputStream.readObject();
                 ControllerThread.getInstance().queueIncomingWARMessage(warMessage, this.player);
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
-                // WARMessage warResponse = handleWARMessage(warMessage);
             }
         } catch (IOException e) {
             System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
@@ -67,6 +65,7 @@ public class ServerThread extends Thread {
             e.printStackTrace();
         } finally {
             try {
+                // TODO: client has left, terminate the game if it's not finished
                 System.out.println("Closing the connection");
                 if (objectInputStream != null) {
                     objectInputStream.close();

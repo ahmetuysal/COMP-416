@@ -34,8 +34,8 @@ public class WARGame {
         Utilities.shuffleByteArray(cardDeck);
         byte[] player1Deck = Arrays.copyOfRange(cardDeck, 0, 26);
         byte[] player2Deck = Arrays.copyOfRange(cardDeck, 27, 52);
-        this.player1.setCards(player1Deck);
-        this.player2.setCards(player2Deck);
+        this.player1.setCards(Utilities.byteArrayToByteList(player1Deck));
+        this.player2.setCards(Utilities.byteArrayToByteList(player2Deck));
     }
 
     public Date getCreatedOn() {
@@ -61,13 +61,19 @@ public class WARGame {
     public Player getOtherPlayer(Player player) {
         if (player1.equals(player)) {
             return player2;
-        }
-        else if (player2.equals(player)) {
-            return  player1;
-        }
-        else {
+        } else if (player2.equals(player)) {
+            return player1;
+        } else {
             return null;
         }
     }
 
+    public boolean isGameStarted() {
+        return isGameStarted;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        isGameStarted = gameStarted;
+        lastChangedOn = new Date();
+    }
 }
