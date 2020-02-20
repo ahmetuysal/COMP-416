@@ -7,7 +7,11 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import domain.WARGame;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
+
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -30,8 +34,14 @@ public class MongoDBWARRepository implements WARRepository {
 
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
-        mongoClient = MongoClients.create();
+        CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .codecRegistry(pojoCodecRegistry)
+                .build();
+        mongoClient = MongoClients.create(settings);
         WARDatabase = mongoClient.getDatabase(name);
+
     }
 
     @Override

@@ -22,6 +22,7 @@ public class WARGame {
     private Player player2;
     private boolean isGameStarted;
     private ObjectId gameID;
+    private int numRounds;
 
     public WARGame(Player player1, Player player2) {
         this.createdOn = new Date();
@@ -31,6 +32,7 @@ public class WARGame {
         initializeCards();
         isGameStarted = false;
         this.gameID = new ObjectId();
+        this.numRounds = 0;
     }
 
     public WARGame() {
@@ -96,7 +98,8 @@ public class WARGame {
                 .append("player2", this.player2)
                 .append("created_on", this.createdOn)
                 .append("last_change", this.lastChangedOn)
-                .append("is_started", this.isGameStarted);
+                .append("is_started", this.isGameStarted)
+                .append("rounds", this.numRounds);
         return doc2gen;
     }
 
@@ -107,5 +110,14 @@ public class WARGame {
         this.player1 =  (Player) doc.get("player1");
         this.player2 =  (Player) doc.get("player2");
         this.isGameStarted = doc.getBoolean("is_started");
+        this.numRounds = doc.getInteger("rounds");
+    }
+
+    public int getNumRounds() {
+        return numRounds;
+    }
+
+    public void setNumRounds(int rounds) {
+        this.numRounds = rounds;
     }
 }

@@ -82,6 +82,9 @@ public class WARService {
             playerThread.sendWARMessage(playerPlayResultMessage);
             opponentThread.sendWARMessage(opponentPlayResultMessage);
 
+            game.setNumRounds(game.getNumRounds() + 1);
+            System.out.println("Rounds played: " + game.getNumRounds());
+
             // TODO: check whether game has ended
             if (player.getCards().isEmpty()) {
                 WARMessage playerGameResultMessage;
@@ -106,6 +109,7 @@ public class WARService {
             // other player didn't send a play card message yet
             player.setWaitingPlayedCard(message.getPayload()[0]);
         }
+
         game.setLastChangedOn(new Date());
     }
 

@@ -41,11 +41,16 @@ public class ControllerThread extends Thread {
             Date currentTime = new Date();
             if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
                 warService.getOngoingGames().stream()
-                        .filter(warGame -> warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime())
-                        .forEach(warGame -> {
-                            warService.updateGame(warGame);
-                            // backup to the follower here as well?
-                            warGame.setLastChangedOn(currentTime);
+                        .forEach(
+                                warGame -> {
+                                if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
+                                    System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:\n");
+                                    warService.updateGame(warGame);
+                                    // backup to the follower here as well?
+                                    warGame.setLastChangedOn(currentTime);
+                                } else {
+                                    System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
+                                }
                         });
                 lastUpdatedOn = currentTime;
             }
