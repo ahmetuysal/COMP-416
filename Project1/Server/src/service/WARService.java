@@ -45,10 +45,21 @@ public class WARService {
         this.playerToServerThreadMap.put(player, serverThread);
     }
 
-    public WARMessage handleWantGameMessage(WARMessage message, Player player) {
+    public void handleWantGameMessage(WARMessage message, Player player) {
+        System.out.println("Handling want game message: " + message.toString());
+        // TODO: validate game & threads exist?
         player.setName(new String(message.getPayload()));
         WARGame game = playerToGameMap.get(player);
-        return null;
+        Player otherPlayer = game.getOtherPlayer(player);
+        if (otherPlayer.getName() != null && !otherPlayer.getName().isEmpty()) {
+            game.setGameStarted(true);
+            ServerThread player1Thread = playerToServerThreadMap.get(player);
+            ServerThread player2Thread = playerToServerThreadMap.get(otherPlayer);
+            WARMessage player1GameStartMessage = new WARMessage((byte) 1, player.getCards());
+            WARMessage player2GameStartMessage = new WARMessage((byte) 1, otherPlayer.getCards());
+            player1Thread.sendWARMessage(player1GameStartMessage);
+            player2Thread.sendWARMessage(player2GameStartMessage);
+        }
     }
 
 }

@@ -61,13 +61,19 @@ public class WARGame {
     public Player getOtherPlayer(Player player) {
         if (player1.equals(player)) {
             return player2;
-        }
-        else if (player2.equals(player)) {
-            return  player1;
-        }
-        else {
+        } else if (player2.equals(player)) {
+            return player1;
+        } else {
             return null;
         }
     }
 
+    public boolean isGameStarted() {
+        return isGameStarted;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        isGameStarted = gameStarted;
+        lastChangedOn = new Date();
+    }
 }
