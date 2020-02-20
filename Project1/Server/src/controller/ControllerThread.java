@@ -2,8 +2,10 @@ package controller;
 
 import contract.WARMessage;
 import domain.Player;
+import repository.WARRepository;
 import service.WARService;
 
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -12,12 +14,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ControllerThread extends Thread {
 
     private static final ControllerThread _instance = new ControllerThread();
+    private Date lastUpdatedOn;
     private LinkedBlockingQueue<WARMessagePlayerPair> waitingMessages;
     private WARService warService;
 
     private ControllerThread() {
         waitingMessages = new LinkedBlockingQueue<>();
         warService = WARService.getInstance();
+        lastUpdatedOn = new Date();
     }
 
     public static ControllerThread getInstance() {
@@ -34,13 +38,17 @@ public class ControllerThread extends Thread {
                 WARMessagePlayerPair messagePlayerPair = waitingMessages.poll();
                 handleWARMessage(messagePlayerPair.getWarMessage(), messagePlayerPair.getPlayer());
             }
-            /*
-            if((System.currentTimeMillis() - warService.getOngoingGames().get(warService.getOngoingGames().size()-1).getLastChangedOn().getTime())/1000 >= 30) {
-                warService.getWarRepository().updateGame(warService.getOngoingGames().get(warService.getOngoingGames().size()-1));
-                // backup to the follower here as well?
+            Date currentTime = new Date();
+            if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
+                warService.getOngoingGames().stream()
+                        .filter(warGame -> warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime())
+                        .forEach(warGame -> {
+                            warService.updateGame(warGame);
+                            // backup to the follower here as well?
+                            warGame.setLastChangedOn(currentTime);
+                        });
+                lastUpdatedOn = currentTime;
             }
-             */
-
         }
     }
 

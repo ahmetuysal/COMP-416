@@ -130,8 +130,8 @@ public class WARService {
         return this.ongoingGames;
     }
 
-    public WARRepository getWarRepository() {
-        return this.warRepository;
+    public void updateGame(WARGame game) {
+        warRepository.updateGame(game);
     }
 
 }

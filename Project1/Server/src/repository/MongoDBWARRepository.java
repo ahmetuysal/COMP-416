@@ -54,10 +54,8 @@ public class MongoDBWARRepository implements WARRepository {
 
     @Override
     public void updateGame(WARGame gameData) {
-
         BasicDBObject gq = new BasicDBObject("_id", gameData.getGameID());
         WARDatabase.getCollection(name).findOneAndReplace(gq, gameData.generateWARDoc());
-
     }
 
     @Override
