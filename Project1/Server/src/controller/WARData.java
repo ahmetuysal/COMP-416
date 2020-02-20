@@ -7,12 +7,17 @@ public class WARData {
     private String userName;
     private int currentScore;
     private int[] remainingCards;
+    private String gameID;
 
     public WARData(String userName, int[] remainingCards, int currentScore) {
 
         this.userName = userName;
         this.remainingCards = remainingCards;
         this.currentScore = currentScore;
+
+    }
+
+    public WARData(){
 
     }
 
@@ -28,5 +33,12 @@ public class WARData {
         return new WARData(doc.getString("name"), (int[]) doc.get("remaining"), doc.getInteger("score"));
     }
 
+    public void setGameID(String gameID) {
+        this.gameID = gameID;
+    }
+
+    public String getGameID() {
+        return this.gameID;
+    }
 
 }

@@ -8,8 +8,8 @@ import controller.WARData;
 public interface WARRepository {
 
 
-    public void insertGame(WARData gameData);
-    public void retrieveGame( /* need params */ );
+    public String insertGame(WARData gameData);
+    public WARData retrieveGame(String objID);
     public void updateGame( /* need params */ );
     public void deleteGame( /* need params */ );
 

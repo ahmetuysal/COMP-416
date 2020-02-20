@@ -1,15 +1,13 @@
 package repository;
 
+import com.mongodb.*;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ConnectionString;
-import com.mongodb.ServerAddress;
-import com.mongodb.MongoCredential;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
 import controller.WARData;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -37,20 +35,31 @@ public class MongoDBWARRepository implements WARRepository {
     }
 
     @Override
-    public void insertGame(WARData gameData) {
+    public String insertGame(WARData gameData) {
 
         Document doc2insert = gameData.generateWARDoc();
+        doc2insert.append("_id",new ObjectId());
         WARDatabase.getCollection(collection).insertOne(doc2insert);
+        return doc2insert.getObjectId("_id").toString();
 
     }
 
     @Override
-    public void retrieveGame() {
+    public WARData retrieveGame(String objID) {
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new ObjectId(objID));
+        FindIterable<Document> found = WARDatabase.getCollection(name).find(query);
+        WARData retrievedGame = new WARData().loadFromDoc(found.first());
+        return retrievedGame;
+
 
     }
 
     @Override
     public void updateGame() {
+
+
 
     }
 
