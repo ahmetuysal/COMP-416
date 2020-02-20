@@ -85,6 +85,9 @@ public class WARGame {
         lastChangedOn = new Date();
     }
 
+    public ObjectId getGameID() {
+        return this.gameID;
+    }
 
     public Document generateWARDoc() {
         Document doc2gen = new Document()

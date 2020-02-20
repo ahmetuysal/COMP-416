@@ -45,23 +45,25 @@ public class MongoDBWARRepository implements WARRepository {
     @Override
     public void retrieveGame(String objID) {
 
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", new ObjectId(objID));
-        FindIterable<Document> found = WARDatabase.getCollection(name).find(query);
+        BasicDBObject gq = new BasicDBObject("_id", new ObjectId(objID));
+        FindIterable<Document> found = WARDatabase.getCollection(name).find(gq);
         WARGame retrievedGame = new WARGame();
         retrievedGame.loadFromDoc(found.first());
 
     }
 
     @Override
-    public void updateGame() {
+    public void updateGame(WARGame gameData) {
 
-
+        BasicDBObject gq = new BasicDBObject("_id", gameData.getGameID());
+        WARDatabase.getCollection(name).findOneAndReplace(gq, gameData.generateWARDoc());
 
     }
 
     @Override
-    public void deleteGame() {
+    public void deleteGame(String objID) {
 
+        BasicDBObject gq = new BasicDBObject("_id", new ObjectId(objID));
+        WARDatabase.getCollection(name).deleteOne(gq);
     }
 }

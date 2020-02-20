@@ -8,10 +8,10 @@ import domain.WARGame;
 public interface WARRepository {
 
 
-    public void insertGame(WARGame gameData);
-    public void retrieveGame(String objID);
-    public void updateGame( /* need params */ );
-    public void deleteGame( /* need params */ );
+    void insertGame(WARGame gameData);
+    void retrieveGame(String objID);
+    void updateGame(WARGame gameData);
+    void deleteGame(String objID);
 
 
 
