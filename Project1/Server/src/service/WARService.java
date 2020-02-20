@@ -6,11 +6,9 @@ import domain.WARGame;
 import network.ServerThread;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
+import util.Utilities;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -45,9 +43,57 @@ public class WARService {
         this.playerToServerThreadMap.put(player, serverThread);
     }
 
+    public void handlePlayCardMessage(WARMessage message, Player player) {
+        System.out.println("Handling play card message: " + message.toString());
+        // TODO: validate game & threads exist
+        WARGame game = playerToGameMap.get(player);
+        // TODO: validate game has started
+        Player otherPlayer = game.getOtherPlayer(player);
+        byte playerCard = message.getPayload()[0];
+
+        // Validate player has that card
+        if (!player.removeCard(playerCard)) {
+            // TODO: send an error message
+            return;
+        }
+
+        if (otherPlayer.getWaitingPlayedCard() != -1) {
+            // remove waiting played card
+            otherPlayer.setWaitingPlayedCard((byte) -1);
+            // other player already sent play card message
+            byte opponentCard = otherPlayer.getWaitingPlayedCard();
+            WARMessage playerPlayResultMessage;
+            WARMessage opponentPlayResultMessage;
+            if (playerCard % 13 > opponentCard % 13) {
+                player.incrementPoint();
+                playerPlayResultMessage = new WARMessage((byte) 3, new byte[]{0});
+                opponentPlayResultMessage = new WARMessage((byte) 3, new byte[]{2});
+            } else if (opponentCard % 13 > playerCard % 13) {
+                otherPlayer.incrementPoint();
+                playerPlayResultMessage = new WARMessage((byte) 3, new byte[]{2});
+                opponentPlayResultMessage = new WARMessage((byte) 3, new byte[]{0});
+            } else {
+                playerPlayResultMessage = new WARMessage((byte) 3, new byte[]{1});
+                opponentPlayResultMessage = new WARMessage((byte) 3, new byte[]{1});
+            }
+
+            ServerThread playerThread = playerToServerThreadMap.get(player);
+            ServerThread opponentThread = playerToServerThreadMap.get(otherPlayer);
+            playerThread.sendWARMessage(playerPlayResultMessage);
+            opponentThread.sendWARMessage(opponentPlayResultMessage);
+
+            // TODO: check whether game has ended
+
+        } else {
+            // other player didn't send a play card message yet
+            player.setWaitingPlayedCard(message.getPayload()[0]);
+        }
+        game.setLastChangedOn(new Date());
+    }
+
     public void handleWantGameMessage(WARMessage message, Player player) {
         System.out.println("Handling want game message: " + message.toString());
-        // TODO: validate game & threads exist?
+        // TODO: validate game & threads exist
         player.setName(new String(message.getPayload()));
         WARGame game = playerToGameMap.get(player);
         Player otherPlayer = game.getOtherPlayer(player);
@@ -55,8 +101,8 @@ public class WARService {
             game.setGameStarted(true);
             ServerThread player1Thread = playerToServerThreadMap.get(player);
             ServerThread player2Thread = playerToServerThreadMap.get(otherPlayer);
-            WARMessage player1GameStartMessage = new WARMessage((byte) 1, player.getCards());
-            WARMessage player2GameStartMessage = new WARMessage((byte) 1, otherPlayer.getCards());
+            WARMessage player1GameStartMessage = new WARMessage((byte) 1, Utilities.byteListToByteArray(player.getCards()));
+            WARMessage player2GameStartMessage = new WARMessage((byte) 1, Utilities.byteListToByteArray(otherPlayer.getCards()));
             player1Thread.sendWARMessage(player1GameStartMessage);
             player2Thread.sendWARMessage(player2GameStartMessage);
         }

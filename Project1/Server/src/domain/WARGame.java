@@ -34,8 +34,8 @@ public class WARGame {
         Utilities.shuffleByteArray(cardDeck);
         byte[] player1Deck = Arrays.copyOfRange(cardDeck, 0, 26);
         byte[] player2Deck = Arrays.copyOfRange(cardDeck, 27, 52);
-        this.player1.setCards(player1Deck);
-        this.player2.setCards(player2Deck);
+        this.player1.setCards(Utilities.byteArrayToByteList(player1Deck));
+        this.player2.setCards(Utilities.byteArrayToByteList(player2Deck));
     }
 
     public Date getCreatedOn() {

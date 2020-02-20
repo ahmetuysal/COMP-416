@@ -1,5 +1,7 @@
 package util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,6 +22,22 @@ public final class Utilities {
             byteArray[index] = byteArray[i];
             byteArray[i] = a;
         }
+    }
+
+    public static byte[] byteListToByteArray(List<Byte> byteList) {
+        byte[] byteArray = new byte[byteList.size()];
+        for (int i = 0; i < byteList.size(); i++) {
+            byteArray[i] = byteList.get(i);
+        }
+        return byteArray;
+    }
+
+    public static List<Byte> byteArrayToByteList(byte[] byteArray) {
+        List<Byte> byteList = new ArrayList<>();
+        for (Byte value : byteArray) {
+            byteList.add(value);
+        }
+        return byteList;
     }
 
 }

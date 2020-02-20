@@ -65,6 +65,7 @@ public class ServerThread extends Thread {
             e.printStackTrace();
         } finally {
             try {
+                // TODO: client has left, terminate the game if it's not finished
                 System.out.println("Closing the connection");
                 if (objectInputStream != null) {
                     objectInputStream.close();

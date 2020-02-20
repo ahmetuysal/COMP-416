@@ -42,6 +42,8 @@ public class ControllerThread extends Thread {
             // TODO: implement WARMessage handling
             if (warMessage.getType() == 0) {
                 warService.handleWantGameMessage(warMessage, player);
+            } else if (warMessage.getType() == 2) {
+                warService.handlePlayCardMessage(warMessage, player);
             }
         } else {
             // TODO: send error message
@@ -55,11 +57,11 @@ public class ControllerThread extends Thread {
             // want game
             case 0:
                 return warMessage.getPayload() != null && !new String(warMessage.getPayload()).isEmpty();
-                // play card
+            // play card
             case 2:
-            // play result
+                // play result
             case 3:
-            // game result
+                // game result
             case 4:
                 if (warMessage.getPayload() == null || warMessage.getPayload().length != 1) {
                     return false;
