@@ -1,13 +1,13 @@
 package repository;
 
+import com.mongodb.*;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ConnectionString;
-import com.mongodb.ServerAddress;
-import com.mongodb.MongoCredential;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
+import controller.WARData;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -15,6 +15,8 @@ import com.mongodb.client.MongoDatabase;
 public class MongoDBWARRepository implements WARRepository {
 
     private static MongoDBWARRepository _instance;
+    private static final String name = "WARRepo";
+    private static final String collection = "WARGames";
 
     public static synchronized MongoDBWARRepository getInstance() {
         if (_instance == null) {
@@ -29,6 +31,40 @@ public class MongoDBWARRepository implements WARRepository {
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
         mongoClient = MongoClients.create();
-        WARDatabase = mongoClient.getDatabase("WARGame");
+        WARDatabase = mongoClient.getDatabase(name);
+    }
+
+    @Override
+    public String insertGame(WARData gameData) {
+
+        Document doc2insert = gameData.generateWARDoc();
+        doc2insert.append("_id",new ObjectId());
+        WARDatabase.getCollection(collection).insertOne(doc2insert);
+        return doc2insert.getObjectId("_id").toString();
+
+    }
+
+    @Override
+    public WARData retrieveGame(String objID) {
+
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", new ObjectId(objID));
+        FindIterable<Document> found = WARDatabase.getCollection(name).find(query);
+        WARData retrievedGame = new WARData().loadFromDoc(found.first());
+        return retrievedGame;
+
+
+    }
+
+    @Override
+    public void updateGame() {
+
+
+
+    }
+
+    @Override
+    public void deleteGame() {
+
     }
 }
