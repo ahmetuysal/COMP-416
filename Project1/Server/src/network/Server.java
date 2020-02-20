@@ -1,4 +1,8 @@
-import controller.ControllerThread;
+package network;
+
+import contract.WARMessage;
+import domain.Player;
+import service.WARService;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -10,7 +14,8 @@ import java.net.Socket;
  */
 public class Server {
     private ServerSocket serverSocket;
-    private ControllerThread waitingPlayerThread = null;
+    private ServerThread waitingPlayerThread = null;
+    private WARService warService;
 
     /**
      * Initiates a server socket on the input port, listens to the line, on receiving an incoming
@@ -19,12 +24,13 @@ public class Server {
      * @param port port to open a socket on
      */
     public Server(int port) {
+        warService = WARService.getInstance();
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Opened up a server socket on " + Inet4Address.getLocalHost());
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Server class.Constructor exception on opening a server socket");
+            System.err.println("network.Server class.Constructor exception on opening a server socket");
         }
         while (true) {
             listenAndAccept();
@@ -40,24 +46,26 @@ public class Server {
         try {
             socket = serverSocket.accept();
             System.out.println("A connection was established with a client on the address of " + socket.getRemoteSocketAddress());
-            ControllerThread controllerThread = new ControllerThread(socket);
-            controllerThread.start();
+            Player newPlayer = new Player();
+            ServerThread serverThread = new ServerThread(socket, newPlayer);
+            serverThread.start();
+            warService.registerPlayer(newPlayer, serverThread);
             if (waitingPlayerThread == null) {
-                waitingPlayerThread = controllerThread;
-            }
-            else {
+                waitingPlayerThread = serverThread;
+            } else {
                 if (waitingPlayerThread.isSocketOpen()) {
-                    waitingPlayerThread.sendMatchmakingMessage();
-                    controllerThread.sendMatchmakingMessage();
+                    WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
+                    waitingPlayerThread.sendWARMessage(matchmakingMessage);
+                    serverThread.sendWARMessage(matchmakingMessage);
+                    WARService.getInstance().initializeGame(waitingPlayerThread.getPlayer(), serverThread.getPlayer());
                     waitingPlayerThread = null;
-                }
-                else {
-                    waitingPlayerThread = controllerThread;
+                } else {
+                    waitingPlayerThread = serverThread;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Server Class.Connection establishment error inside listen and accept function");
+            System.err.println("network.Server Class.Connection establishment error inside listen and accept function");
         }
     }
 

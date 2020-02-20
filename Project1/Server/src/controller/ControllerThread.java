@@ -1,91 +1,51 @@
 package controller;
 
 import contract.WARMessage;
+import domain.Player;
+import service.WARService;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
 public class ControllerThread extends Thread {
-    private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
-    private Socket socket;
 
-    /**
-     * @param socket Input socket to create a thread on
-     */
-    public ControllerThread(Socket socket) {
-        this.socket = socket;
+    private static final ControllerThread _instance = new ControllerThread();
+    private LinkedBlockingQueue<WARMessagePlayerPair> waitingMessages;
+    private WARService warService;
+
+    private ControllerThread() {
+        waitingMessages = new LinkedBlockingQueue<>();
+        warService = WARService.getInstance();
     }
 
-    public boolean isSocketOpen() {
-        return this.socket.isConnected() && !this.socket.isClosed();
+    public static ControllerThread getInstance() {
+        return _instance;
     }
 
+    public void queueIncomingWARMessage(WARMessage incomingMessage, Player source) {
+        waitingMessages.add(new WARMessagePlayerPair(incomingMessage, source));
+    }
 
     public void run() {
-        try {
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            WARMessage warMessage;
-            while (true) {
-                warMessage = (WARMessage) objectInputStream.readObject();
-                System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
-                WARMessage warResponse = handleWARMessage(warMessage);
-                objectOutputStream.writeObject(warMessage);
-                System.out.println("Response " + warMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
-                objectOutputStream.flush();
-            }
-        } catch (IOException e) {
-            System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
-        } catch (NullPointerException e) {
-            System.err.println("Server Thread. Run.Client " + this.getName() + " Closed");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                System.out.println("Closing the connection");
-                if (objectInputStream != null) {
-                    objectInputStream.close();
-                    System.err.println("Socket Input Stream Closed");
-                }
-                if (objectOutputStream != null) {
-                    objectOutputStream.close();
-                    System.err.println("Socket Out Closed");
-                }
-                if (socket != null) {
-                    socket.close();
-                    System.err.println("Socket Closed");
-                }
-
-            } catch (IOException ie) {
-                System.err.println("Socket Close Error");
+        while (true) {
+            if (!waitingMessages.isEmpty()) {
+                WARMessagePlayerPair messagePlayerPair = waitingMessages.poll();
+                handleWARMessage(messagePlayerPair.getWarMessage(), messagePlayerPair.getPlayer());
             }
         }
     }
 
-    public void sendMatchmakingMessage() {
-        try {
-            WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
-            objectOutputStream.writeObject(matchmakingMessage);
-            System.out.println("Response " + matchmakingMessage.toString() + " sent to client: " + socket.getRemoteSocketAddress());
-            objectOutputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private WARMessage handleWARMessage(WARMessage warMessage, Player player) {
+        if (validateWarMessage(warMessage)) {
+            // TODO: implement WARMessage handling
+            if (warMessage.getType() == 0) {
+                warService.handleWantGameMessage(warMessage, player);
+            }
+        } else {
+            // TODO: send error message
         }
-    }
-
-    private WARMessage handleWARMessage(WARMessage warMessage) {
-        // TODO: implement WARMessage handling
         return warMessage;
     }
 
@@ -95,19 +55,19 @@ public class ControllerThread extends Thread {
         switch (warMessage.getType()) {
             // want game
             case 0:
-            // play card
+                // play card
             case 2:
-            // play result
+                // play result
             case 3:
-            // game result
+                // game result
             case 4:
-                if (warMessage.getPayload() == null || warMessage.getPayload().length!= 1) {
+                if (warMessage.getPayload() == null || warMessage.getPayload().length != 1) {
                     return false;
                 }
                 break;
             // game start
             case 1:
-                if (warMessage.getPayload() == null || warMessage.getPayload().length!= 26) {
+                if (warMessage.getPayload() == null || warMessage.getPayload().length != 26) {
                     return false;
                 }
                 break;
@@ -116,7 +76,7 @@ public class ControllerThread extends Thread {
                 return warMessage.getPayload() == null || warMessage.getPayload().length == 0;
             // invalid WARMessage type
             default:
-                return  false;
+                return false;
         }
 
         // check card values
