@@ -1,5 +1,9 @@
 package domain;
 
+import com.mongodb.BasicDBObject;
+import controller.WARData;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import util.Utilities;
 
 import java.util.Arrays;
@@ -19,6 +23,7 @@ public class WARGame {
     private Player player1;
     private Player player2;
     private boolean isGameStarted;
+    private ObjectId gameID;
 
     public WARGame(Player player1, Player player2) {
         this.createdOn = new Date();
@@ -27,6 +32,11 @@ public class WARGame {
         this.player2 = player2;
         initializeCards();
         isGameStarted = false;
+        this.gameID = new ObjectId();
+    }
+
+    public WARGame() {
+
     }
 
     private void initializeCards() {
@@ -75,5 +85,26 @@ public class WARGame {
     public void setGameStarted(boolean gameStarted) {
         isGameStarted = gameStarted;
         lastChangedOn = new Date();
+    }
+
+
+    public Document generateWARDoc() {
+        Document doc2gen = new Document()
+                .append("_id", this.gameID)
+                .append("player1", this.player1)
+                .append("player2", this.player2)
+                .append("created_on", this.createdOn)
+                .append("last_change", this.lastChangedOn)
+                .append("is_started", this.isGameStarted);
+        return doc2gen;
+    }
+
+    public void loadFromDoc(Document doc) {
+        this.gameID =  doc.getObjectId("_id");
+        this.createdOn = doc.getDate("created_on");
+        this.lastChangedOn = doc.getDate("last_change");
+        this.player1 =  (Player) doc.get("player1");
+        this.player2 =  (Player) doc.get("player2");
+        this.isGameStarted = doc.getBoolean("is_started");
     }
 }

@@ -1,6 +1,7 @@
 package repository;
 
 import controller.WARData;
+import domain.WARGame;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -8,8 +9,8 @@ import controller.WARData;
 public interface WARRepository {
 
 
-    public String insertGame(WARData gameData);
-    public WARData retrieveGame(String objID);
+    public void insertGame(WARGame gameData);
+    public void retrieveGame(String objID);
     public void updateGame( /* need params */ );
     public void deleteGame( /* need params */ );
 

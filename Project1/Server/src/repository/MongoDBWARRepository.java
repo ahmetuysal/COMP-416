@@ -6,6 +6,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import controller.WARData;
+import domain.WARGame;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -35,24 +36,21 @@ public class MongoDBWARRepository implements WARRepository {
     }
 
     @Override
-    public String insertGame(WARData gameData) {
+    public void insertGame(WARGame gameData) {
 
         Document doc2insert = gameData.generateWARDoc();
-        doc2insert.append("_id",new ObjectId());
         WARDatabase.getCollection(collection).insertOne(doc2insert);
-        return doc2insert.getObjectId("_id").toString();
 
     }
 
     @Override
-    public WARData retrieveGame(String objID) {
+    public void retrieveGame(String objID) {
 
         BasicDBObject query = new BasicDBObject();
         query.put("_id", new ObjectId(objID));
         FindIterable<Document> found = WARDatabase.getCollection(name).find(query);
-        WARData retrievedGame = new WARData().loadFromDoc(found.first());
-        return retrievedGame;
-
+        WARGame retrievedGame = new WARGame();
+        retrievedGame.loadFromDoc(found.first());
 
     }
 
