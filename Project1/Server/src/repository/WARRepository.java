@@ -1,6 +1,5 @@
 package repository;
 
-import controller.WARData;
 import domain.WARGame;
 
 /**

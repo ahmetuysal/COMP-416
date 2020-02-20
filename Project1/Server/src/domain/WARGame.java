@@ -1,7 +1,5 @@
 package domain;
 
-import com.mongodb.BasicDBObject;
-import controller.WARData;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import util.Utilities;
