@@ -34,6 +34,13 @@ public class ControllerThread extends Thread {
                 WARMessagePlayerPair messagePlayerPair = waitingMessages.poll();
                 handleWARMessage(messagePlayerPair.getWarMessage(), messagePlayerPair.getPlayer());
             }
+            /*
+            if((System.currentTimeMillis() - warService.getOngoingGames().get(warService.getOngoingGames().size()-1).getLastChangedOn().getTime())/1000 >= 30) {
+                warService.getWarRepository().updateGame(warService.getOngoingGames().get(warService.getOngoingGames().size()-1));
+                // backup to the follower here as well?
+            }
+             */
+
         }
     }
 

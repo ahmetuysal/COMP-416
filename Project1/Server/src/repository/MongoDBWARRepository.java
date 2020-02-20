@@ -13,7 +13,7 @@ import org.bson.types.ObjectId;
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
 public class MongoDBWARRepository implements WARRepository {
-
+    // DB Credentials from configs
     private static MongoDBWARRepository _instance;
     private static final String name = "WARRepo";
     private static final String collection = "WARGames";
@@ -62,7 +62,6 @@ public class MongoDBWARRepository implements WARRepository {
 
     @Override
     public void deleteGame(String objID) {
-
         BasicDBObject gq = new BasicDBObject("_id", new ObjectId(objID));
         WARDatabase.getCollection(name).deleteOne(gq);
     }

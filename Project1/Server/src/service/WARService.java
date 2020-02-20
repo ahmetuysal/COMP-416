@@ -126,4 +126,12 @@ public class WARService {
         }
     }
 
+    public List<WARGame> getOngoingGames() {
+        return this.ongoingGames;
+    }
+
+    public WARRepository getWarRepository() {
+        return this.warRepository;
+    }
+
 }
