@@ -2,6 +2,7 @@ package controller;
 
 import contract.WARMessage;
 import domain.Player;
+import service.WARService;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -11,33 +12,36 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ControllerThread extends Thread {
 
     private static final ControllerThread _instance = new ControllerThread();
+    private LinkedBlockingQueue<WARMessagePlayerPair> waitingMessages;
+    private WARService warService;
 
-    private ControllerThread() {}
+    private ControllerThread() {
+        waitingMessages = new LinkedBlockingQueue<>();
+        warService = WARService.getInstance();
+    }
 
     public static ControllerThread getInstance() {
         return _instance;
     }
 
-    private LinkedBlockingQueue<WARMessage> waitingMessages;
-
     public void queueIncomingWARMessage(WARMessage incomingMessage, Player source) {
-        waitingMessages.add(incomingMessage);
+        waitingMessages.add(new WARMessagePlayerPair(incomingMessage, source));
     }
 
     public void run() {
         while (true) {
             if (!waitingMessages.isEmpty()) {
-                WARMessage message = waitingMessages.poll();
-                handleWARMessage(message);
+                WARMessagePlayerPair messagePlayerPair = waitingMessages.poll();
+                handleWARMessage(messagePlayerPair.getWarMessage(), messagePlayerPair.getPlayer());
             }
         }
     }
 
-    private WARMessage handleWARMessage(WARMessage warMessage) {
+    private WARMessage handleWARMessage(WARMessage warMessage, Player player) {
         if (validateWarMessage(warMessage)) {
             // TODO: implement WARMessage handling
             if (warMessage.getType() == 0) {
-
+                warService.handleWantGameMessage(warMessage, player);
             }
         } else {
             // TODO: send error message

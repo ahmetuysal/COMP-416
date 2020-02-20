@@ -3,6 +3,7 @@ package service;
 import contract.WARMessage;
 import domain.Player;
 import domain.WARGame;
+import network.ServerThread;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
 
@@ -14,20 +15,22 @@ import java.util.Map;
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
-public class WarService {
+public class WARService {
 
-    private static final WarService _instance = new WarService();
+    private static final WARService _instance = new WARService();
     private WARRepository warRepository;
     private List<WARGame> ongoingGames;
     private Map<Player, WARGame> playerToGameMap;
+    private Map<Player, ServerThread> playerToServerThreadMap;
 
-    private WarService() {
+    private WARService() {
         warRepository = MongoDBWARRepository.getInstance();
         ongoingGames = new ArrayList<>();
         playerToGameMap = new HashMap<>();
+        playerToServerThreadMap = new HashMap<>();
     }
 
-    public static synchronized WarService getInstance() {
+    public static synchronized WARService getInstance() {
         return _instance;
     }
 
@@ -38,7 +41,13 @@ public class WarService {
         playerToGameMap.put(player2, newGame);
     }
 
+    public void registerPlayer(Player player, ServerThread serverThread) {
+        this.playerToServerThreadMap.put(player, serverThread);
+    }
+
     public WARMessage handleWantGameMessage(WARMessage message, Player player) {
+        player.setName(new String(message.getPayload()));
+        WARGame game = playerToGameMap.get(player);
         return null;
     }
 

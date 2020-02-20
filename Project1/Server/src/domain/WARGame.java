@@ -18,6 +18,7 @@ public class WARGame {
     private Date lastChangedOn;
     private Player player1;
     private Player player2;
+    private boolean isGameStarted;
 
     public WARGame(Player player1, Player player2) {
         this.createdOn = new Date();
@@ -25,6 +26,7 @@ public class WARGame {
         this.player1 = player1;
         this.player2 = player2;
         initializeCards();
+        isGameStarted = false;
     }
 
     private void initializeCards() {

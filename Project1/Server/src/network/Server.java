@@ -2,7 +2,7 @@ package network;
 
 import contract.WARMessage;
 import domain.Player;
-import service.WarService;
+import service.WARService;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -15,6 +15,7 @@ import java.net.Socket;
 public class Server {
     private ServerSocket serverSocket;
     private ServerThread waitingPlayerThread = null;
+    private WARService warService;
 
     /**
      * Initiates a server socket on the input port, listens to the line, on receiving an incoming
@@ -23,6 +24,7 @@ public class Server {
      * @param port port to open a socket on
      */
     public Server(int port) {
+        warService = WARService.getInstance();
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Opened up a server socket on " + Inet4Address.getLocalHost());
@@ -47,6 +49,7 @@ public class Server {
             Player newPlayer = new Player();
             ServerThread serverThread = new ServerThread(socket, newPlayer);
             serverThread.start();
+            warService.registerPlayer(newPlayer, serverThread);
             if (waitingPlayerThread == null) {
                 waitingPlayerThread = serverThread;
             } else {
@@ -54,7 +57,7 @@ public class Server {
                     WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
                     waitingPlayerThread.sendWARMessage(matchmakingMessage);
                     serverThread.sendWARMessage(matchmakingMessage);
-                    WarService.getInstance().initializeGame(waitingPlayerThread.getPlayer(), serverThread.getPlayer());
+                    WARService.getInstance().initializeGame(waitingPlayerThread.getPlayer(), serverThread.getPlayer());
                     waitingPlayerThread = null;
                 } else {
                     waitingPlayerThread = serverThread;
