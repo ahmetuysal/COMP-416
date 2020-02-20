@@ -83,6 +83,24 @@ public class WARService {
             opponentThread.sendWARMessage(opponentPlayResultMessage);
 
             // TODO: check whether game has ended
+            if (player.getCards().isEmpty()) {
+                WARMessage playerGameResultMessage;
+                WARMessage opponentGameResultMessage;
+                int playerScore = player.getPoint();
+                int opponentScore = otherPlayer.getPoint();
+                if (playerScore > opponentScore) {
+                    playerGameResultMessage = new WARMessage((byte) 4, new byte[]{0});
+                    opponentGameResultMessage = new WARMessage((byte) 4, new byte[]{2});
+                } else if (opponentScore > playerScore) {
+                    playerGameResultMessage = new WARMessage((byte) 4, new byte[]{2});
+                    opponentGameResultMessage = new WARMessage((byte) 4, new byte[]{0});
+                } else {
+                    playerGameResultMessage = new WARMessage((byte) 4, new byte[]{1});
+                    opponentGameResultMessage = new WARMessage((byte) 4, new byte[]{1});
+                }
+                playerThread.sendWARMessage(playerGameResultMessage);
+                opponentThread.sendWARMessage(opponentGameResultMessage);
+            }
 
         } else {
             // other player didn't send a play card message yet
