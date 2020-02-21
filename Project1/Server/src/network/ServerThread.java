@@ -2,6 +2,7 @@ package network;
 
 import contract.WARMessage;
 import controller.ControllerThread;
+import domain.Correspondent;
 import domain.Player;
 
 import java.io.IOException;
@@ -19,16 +20,8 @@ public class ServerThread extends Thread {
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     private Socket socket;
-    private Player player;
+    private Correspondent correspondent;
 
-    /**
-     * @param socket Input socket to create a thread on
-     */
-    public ServerThread(Socket socket, Player player) {
-        this.socket = socket;
-        this.player = player;
-        this.outgoingQueue = new LinkedBlockingQueue<>();
-    }
 
     public ServerThread(Socket socket) {
         this.socket = socket;
@@ -39,12 +32,12 @@ public class ServerThread extends Thread {
         return this.socket.isConnected() && !this.socket.isClosed();
     }
 
-    public Player getPlayer() {
-        return player;
+    public Correspondent getCorrespondent() {
+        return correspondent;
     }
 
-    public void setPlayer(Player player) {
-        this.player = player;
+    public void setCorrespondent(Correspondent correspondent) {
+        this.correspondent = correspondent;
     }
 
     public void run() {
@@ -63,7 +56,7 @@ public class ServerThread extends Thread {
                     this.sendWARMessage(outgoingMessage);
                 }
                 warMessage = (WARMessage) objectInputStream.readObject();
-                ControllerThread.getInstance().queueIncomingWARMessage(warMessage, this.player);
+                ControllerThread.getInstance().queueIncomingWARMessage(warMessage, this);
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
             }
         } catch (IOException e) {

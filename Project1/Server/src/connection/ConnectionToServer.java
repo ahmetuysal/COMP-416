@@ -93,8 +93,8 @@ public class ConnectionToServer {
     }
 
     public void send(WARMessage message) {
-        WARMessage response = null;
         try {
+            System.out.println("Sending message: " + message.toString());
             objectOutputStream.writeObject(message);
             objectOutputStream.flush();
         } catch (IOException e) {

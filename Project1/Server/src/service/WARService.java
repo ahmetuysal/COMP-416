@@ -1,6 +1,8 @@
 package service;
 
 import contract.WARMessage;
+import domain.Correspondent;
+import domain.Follower;
 import domain.Player;
 import domain.WARGame;
 import network.ServerThread;
@@ -19,34 +21,69 @@ import java.util.*;
 public class WARService {
 
     private static final WARService _instance = new WARService();
+    private Player waitingPlayer = null;
     private WARRepository warRepository;
     private List<WARGame> ongoingGames;
     private Map<Player, WARGame> playerToGameMap;
-    private Map<Player, ServerThread> playerToServerThreadMap;
+    private Map<Correspondent, ServerThread> correspondentToServerThreadMap;
+    private List<Follower> followers;
 
     private WARService() {
         warRepository = MongoDBWARRepository.getInstance();
         ongoingGames = new ArrayList<>();
+        followers = new ArrayList<>();
         playerToGameMap = new HashMap<>();
-        playerToServerThreadMap = new HashMap<>();
+        correspondentToServerThreadMap = new HashMap<>();
     }
 
     public static synchronized WARService getInstance() {
         return _instance;
     }
 
-    public void initializeGame(Player player1, Player player2) {
+    private void initializeGame(Player player1, Player player2) {
         WARGame newGame = new WARGame(player1, player2);
         ongoingGames.add(newGame);
         playerToGameMap.put(player1, newGame);
         playerToGameMap.put(player2, newGame);
     }
 
-    public void registerPlayer(Player player, ServerThread serverThread) {
-        this.playerToServerThreadMap.put(player, serverThread);
+    public synchronized void registerFollower(ServerThread serverThread) {
+        Follower follower = new Follower();
+        followers.add(follower);
+        serverThread.setCorrespondent(follower);
+        this.correspondentToServerThreadMap.put(follower, serverThread);
     }
 
-    public void handlePlayCardMessage(WARMessage message, Player player) {
+    public synchronized void registerPlayer(ServerThread serverThread) {
+        Player player = new Player();
+        serverThread.setCorrespondent(player);
+        this.correspondentToServerThreadMap.put(player, serverThread);
+
+        if (waitingPlayer == null) {
+            waitingPlayer = player;
+        } else {
+            ServerThread opponentThread = correspondentToServerThreadMap.get(waitingPlayer);
+            if (opponentThread.isSocketOpen()) {
+                WARMessage matchmakingMessage = new WARMessage((byte) 5, null);
+                opponentThread.sendWARMessage(matchmakingMessage);
+                serverThread.sendWARMessage(matchmakingMessage);
+                initializeGame(waitingPlayer, player);
+                waitingPlayer = null;
+            } else {
+                waitingPlayer = player;
+            }
+        }
+
+    }
+
+    public void handlePlayCardMessage(WARMessage message, Correspondent correspondent) {
+        if (!(correspondent instanceof Player)) {
+            System.out.println("A correspondent with non-player type tried to send play card message");
+            return;
+        }
+
+        Player player = (Player) correspondent;
+
         System.out.println("Handling play card message: " + message.toString());
         // TODO: validate game & threads exist
         WARGame game = playerToGameMap.get(player);
@@ -80,8 +117,8 @@ public class WARService {
                 opponentPlayResultMessage = new WARMessage((byte) 3, new byte[]{1});
             }
 
-            ServerThread playerThread = playerToServerThreadMap.get(player);
-            ServerThread opponentThread = playerToServerThreadMap.get(otherPlayer);
+            ServerThread playerThread = correspondentToServerThreadMap.get(player);
+            ServerThread opponentThread = correspondentToServerThreadMap.get(otherPlayer);
             playerThread.sendWARMessage(playerPlayResultMessage);
             opponentThread.sendWARMessage(opponentPlayResultMessage);
 
@@ -116,7 +153,14 @@ public class WARService {
         game.setLastChangedOn(new Date());
     }
 
-    public void handleWantGameMessage(WARMessage message, Player player) {
+    public void handleWantGameMessage(WARMessage message, Correspondent correspondent) {
+        if (!(correspondent instanceof Player)) {
+            System.out.println("A correspondent with non-player type tried to send want game message");
+            return;
+        }
+
+        Player player = (Player) correspondent;
+
         System.out.println("Handling want game message: " + message.toString());
         // TODO: validate game & threads exist
         player.setName(new String(message.getPayload()));
@@ -124,8 +168,8 @@ public class WARService {
         Player otherPlayer = game.getOtherPlayer(player);
         if (otherPlayer.getName() != null && !otherPlayer.getName().isEmpty()) {
             game.setGameStarted(true);
-            ServerThread player1Thread = playerToServerThreadMap.get(player);
-            ServerThread player2Thread = playerToServerThreadMap.get(otherPlayer);
+            ServerThread player1Thread = correspondentToServerThreadMap.get(player);
+            ServerThread player2Thread = correspondentToServerThreadMap.get(otherPlayer);
             WARMessage player1GameStartMessage = new WARMessage((byte) 1, Utilities.byteListToByteArray(player.getCards()));
             WARMessage player2GameStartMessage = new WARMessage((byte) 1, Utilities.byteListToByteArray(otherPlayer.getCards()));
             player1Thread.sendWARMessage(player1GameStartMessage);
