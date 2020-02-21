@@ -44,7 +44,8 @@ public class ControllerThread extends Thread {
                         .forEach(
                                 warGame -> {
                                 if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
-                                    System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:\n");
+                                    System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:");
+                                    System.out.println("Game with ID: " + warGame.getGameID().toString());
                                     warService.updateGame(warGame);
                                     // backup to the follower here as well?
                                     warGame.setLastChangedOn(currentTime);
