@@ -2,7 +2,6 @@ package controller;
 
 import contract.WARMessage;
 import domain.Player;
-import repository.WARRepository;
 import service.WARService;
 
 import java.util.Date;
@@ -53,15 +52,15 @@ public class ControllerThread extends Thread {
     }
 
     private void handleWARMessage(WARMessage warMessage, Player player) {
-        if (validateWarMessage(warMessage)) {
-            // TODO: implement WARMessage handling
-            if (warMessage.getType() == 0) {
-                warService.handleWantGameMessage(warMessage, player);
-            } else if (warMessage.getType() == 2) {
-                warService.handlePlayCardMessage(warMessage, player);
-            }
-        } else {
+        if (!validateWarMessage(warMessage)) {
             // TODO: send error message
+            return;
+        }
+        // TODO: implement WARMessage handling
+        if (warMessage.getType() == 0) {
+            warService.handleWantGameMessage(warMessage, player);
+        } else if (warMessage.getType() == 2) {
+            warService.handlePlayCardMessage(warMessage, player);
         }
     }
 
