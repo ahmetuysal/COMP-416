@@ -26,6 +26,8 @@ public class WARGame {
     }
 
     private byte[] connectToGame() {
+        WARMessage iAmPlayerMessage = new WARMessage((byte) 6, new byte[]{0});
+        connectionToServer.send(iAmPlayerMessage);
         WARMessage matchmakingMessage = connectionToServer.waitForAnswer();
         if (matchmakingMessage.getType() == 5) {
             Scanner sc = new Scanner(System.in);

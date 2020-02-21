@@ -98,12 +98,13 @@ public class WARService {
         }
 
         if (otherPlayer.getWaitingPlayedCard() != -1) {
-            // remove waiting played card
-            otherPlayer.setWaitingPlayedCard((byte) -1);
             // other player already sent play card message
             byte opponentCard = otherPlayer.getWaitingPlayedCard();
+            // remove waiting played card
+            otherPlayer.setWaitingPlayedCard((byte) -1);
             WARMessage playerPlayResultMessage;
             WARMessage opponentPlayResultMessage;
+            System.out.println(playerCard + " " + opponentCard);
             if (playerCard % 13 > opponentCard % 13) {
                 player.incrementPoint();
                 playerPlayResultMessage = new WARMessage((byte) 3, new byte[]{0});

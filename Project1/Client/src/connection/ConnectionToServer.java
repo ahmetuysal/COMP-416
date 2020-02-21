@@ -68,6 +68,16 @@ public class ConnectionToServer {
         return response;
     }
 
+    public void send(WARMessage message) {
+        try {
+            System.out.println("Sending message: " + message.toString());
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Disconnects the socket and closes the buffers
      */
