@@ -4,10 +4,13 @@ import contract.WARMessage;
 import domain.Player;
 import domain.WARGame;
 import network.ServerThread;
+import org.json.simple.JSONArray;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
 import util.Utilities;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -136,6 +139,21 @@ public class WARService {
 
     public void updateGame(WARGame game) {
         warRepository.updateGame(game);
+        System.out.println("hi");
+        JSONArray playerList = new JSONArray();
+        playerList.add(game.getPlayer1());
+        playerList.add(game.getPlayer2());
+
+        try (FileWriter file = new FileWriter("WARGame.json")) {
+
+            file.write(playerList.toJSONString());
+            file.flush();
+            file.write(game.getNumRounds());
+            file.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

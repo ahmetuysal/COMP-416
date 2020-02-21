@@ -30,12 +30,21 @@ public class ServerThread extends Thread {
         this.outgoingQueue = new LinkedBlockingQueue<>();
     }
 
+    public ServerThread(Socket socket) {
+        this.socket = socket;
+        this.outgoingQueue = new LinkedBlockingQueue<>();
+    }
+
     public boolean isSocketOpen() {
         return this.socket.isConnected() && !this.socket.isClosed();
     }
 
     public Player getPlayer() {
         return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     public void run() {
@@ -94,6 +103,16 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public WARMessage getWARMessage() {
+        WARMessage warMessage = null;
+        try {
+            warMessage = (WARMessage) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return warMessage;
     }
 
 }

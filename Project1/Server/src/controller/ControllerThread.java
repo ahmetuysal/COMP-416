@@ -96,7 +96,11 @@ public class ControllerThread extends Thread {
             // matchmaking
             case 5:
                 return warMessage.getPayload() == null || warMessage.getPayload().length == 0;
-            // invalid WARMessage type
+            // follower connected
+            case 6:
+            // follower answered
+            case 7:
+                // invalid WARMessage type
             default:
                 return false;
         }

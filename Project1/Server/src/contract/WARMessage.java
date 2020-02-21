@@ -27,6 +27,10 @@ public class WARMessage implements Serializable {
                 return "game result";
             case 5:
                 return "matchmaking";
+            case 6:
+                return "follower connected";
+            case 7:
+                return "follower answered";
             default:
                 return "invalid type";
         }
