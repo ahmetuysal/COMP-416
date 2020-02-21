@@ -91,6 +91,8 @@ public class Server {
                 }
             } else if (firstMessage.getType() == 6){
                 System.out.println("A connection was established with a follower on the address of " + socket.getRemoteSocketAddress());
+
+
             }else
                 throw new Exception("Not accepted");
 
