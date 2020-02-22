@@ -28,9 +28,11 @@ public class WARMessage implements Serializable {
             case 5:
                 return "matchmaking";
             case 6:
-                return "follower connected";
+                return "correspondent connected";
             case 7:
-                return "follower answered";
+                return "follower communication";
+            case 8:
+                return "ask hashcode";
             default:
                 return "invalid type";
         }

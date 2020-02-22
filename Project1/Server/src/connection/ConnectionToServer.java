@@ -2,10 +2,9 @@ package connection;
 
 import contract.WARMessage;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.nio.Buffer;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -101,4 +100,33 @@ public class ConnectionToServer {
             e.printStackTrace();
         }
     }
+
+    public File receiveFile() {
+        File file =new File("WARGame.json");
+        try {
+            FileOutputStream fileOutputStream=new FileOutputStream(file);
+            FileInputStream fileInputStream=new FileInputStream(file);
+            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            String ch;
+
+            while(dataInputStream.available() > 0){
+                System.out.println("of");
+                ch = dataInputStream.readUTF();
+                System.out.println("ch " + ch);
+                fileOutputStream.write(Integer.parseInt(ch));
+            }
+            fileOutputStream.close();
+            fileInputStream.close();
+            dataInputStream.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+
 }

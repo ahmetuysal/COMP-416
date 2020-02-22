@@ -5,10 +5,9 @@ import controller.ControllerThread;
 import domain.Correspondent;
 import domain.Player;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -47,6 +46,15 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        /*Scanner sc = new Scanner(System.in);
+        String exitMessage = sc.nextLine();
+        if(exitMessage.equalsIgnoreCase("Exit")){
+            File file = new File("WARGame.json");
+            if(file.exists())
+                file.delete();
+            System.exit(0);
+        }*/
 
         try {
             WARMessage warMessage;
@@ -98,14 +106,21 @@ public class ServerThread extends Thread {
         }
     }
 
-    public WARMessage getWARMessage() {
-        WARMessage warMessage = null;
-        try {
-            warMessage = (WARMessage) objectInputStream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return warMessage;
-    }
+   public void sendFile(File file) {
+       FileInputStream fis = null;
+       try {
+           byte[] mybytearray = new byte[(int) file.length() + 1];
+           fis = new FileInputStream(file);
+           BufferedInputStream bis = new BufferedInputStream(fis);
+           bis.read(mybytearray, 0, mybytearray.length);
+           objectOutputStream.write(mybytearray, 0, mybytearray.length);
+           objectOutputStream.flush();
+           bis.close();
+       } catch (FileNotFoundException e) {
+           e.printStackTrace();
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+   }
 
 }

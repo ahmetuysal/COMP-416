@@ -2,11 +2,15 @@ package controller;
 
 import contract.WARMessage;
 import domain.Correspondent;
+import domain.Follower;
 import domain.Player;
 import network.ServerThread;
 import service.WARService;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -39,6 +43,7 @@ public class ControllerThread extends Thread {
                 WARMessageServerThreadPair messageServerThreadPair = waitingMessages.poll();
                 handleWARMessage(messageServerThreadPair.getWarMessage(), messageServerThreadPair.getServerThread());
             }
+            handleFollowerUpdate();
             Date currentTime = new Date();
             if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
                 warService.getOngoingGames().stream()
@@ -74,8 +79,10 @@ public class ControllerThread extends Thread {
                 }
                 // follower connected
                 else if (correspondentType == (byte) 1) {
-
+                    warService.registerFollower(serverThread);
                 }
+            }else if (warMessage.getType() == 8) {
+                warService.sendHashCodeToFollower(serverThread.getCorrespondent());
             }
         } else {
             // TODO: send error message
@@ -111,8 +118,11 @@ public class ControllerThread extends Thread {
             // correspondent connected
             case 6:
                 return warMessage.getPayload() != null && warMessage.getPayload().length == 1;
-            // follower answered
+            // follower communication
             case 7:
+                return true;
+            // ask hashcode
+            case 8:
                 return true;
                 // invalid WARMessage type
             default:
@@ -127,6 +137,10 @@ public class ControllerThread extends Thread {
             }
         }
         return true;
+    }
+
+    private void handleFollowerUpdate(){
+        warService.handleFollowerUpdate();
     }
 
 }

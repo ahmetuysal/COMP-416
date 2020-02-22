@@ -5,10 +5,12 @@ import connection.ConnectionToServer;
 import contract.WARMessage;
 import service.WARService;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -17,6 +19,7 @@ public class Server {
     private ServerSocket serverSocket;
     private WARService warService;
     private WARMessage file = new WARMessage((byte) 0, new byte[]{0});
+    private ConnectionToServer connectionToServer;
 
     /**
      * Initiates a server socket on the input port, listens to the line, on receiving an incoming
@@ -34,20 +37,14 @@ public class Server {
                 e.printStackTrace();
                 System.err.println("network.Server class.Constructor exception on opening a server socket");
             }
-            while (true) {
+            while (true)
                 listenAndAccept();
-            }
         } else if (serverType.equalsIgnoreCase("Follower")) {
-            ConnectionToServer connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"), port);
-            connectionToServer.send(new WARMessage((byte) 6, null));
-            while (true) {
-                int hashCode = connectionToServer.waitForAnswer().getPayload()[0];
-                if (hashCode == file.hashCode())
-                    connectionToServer.sendForAnswer(new WARMessage((byte) 6, "CONSISTENCY_CHECK_PASSED".getBytes()));
-                else
-                    connectionToServer.sendForAnswer(new WARMessage((byte) 6, "RETRANSMIT".getBytes()));
-                //communicate();
-            }
+            connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"), port);
+            WARMessage iAmFollowerMessage = new WARMessage((byte) 6, new byte[]{1});
+            connectionToServer.send(iAmFollowerMessage);
+            /*while (true)
+                communicate();*/
         } else {
             throw new Exception("Not a server type");
         }
@@ -72,8 +69,15 @@ public class Server {
     }
 
     private void communicate() {
+        File receivedFile = connectionToServer.receiveFile();
+        if(receivedFile.length() != 0) {
+            byte hashCode = connectionToServer.sendForAnswer(new WARMessage((byte) 8, new byte[]{})).getPayload()[0];
+            System.out.println("hallo " + hashCode);
+            if (hashCode == (byte) receivedFile.hashCode())
+                connectionToServer.sendForAnswer(new WARMessage((byte) 7, "CONSISTENCY_CHECK_PASSED".getBytes()));
+            else
+                connectionToServer.sendForAnswer(new WARMessage((byte) 7, "RETRANSMIT".getBytes()));
+        }
     }
-
-
 }
 

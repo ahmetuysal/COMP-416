@@ -1,5 +1,8 @@
 package service;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import contract.WARMessage;
 import domain.Correspondent;
 import domain.Follower;
@@ -7,10 +10,15 @@ import domain.Player;
 import domain.WARGame;
 import network.ServerThread;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
 import util.Utilities;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -27,6 +35,7 @@ public class WARService {
     private Map<Player, WARGame> playerToGameMap;
     private Map<Correspondent, ServerThread> correspondentToServerThreadMap;
     private List<Follower> followers;
+    private File file;
 
     private WARService() {
         warRepository = MongoDBWARRepository.getInstance();
@@ -144,6 +153,7 @@ public class WARService {
                 }
                 playerThread.sendWARMessage(playerGameResultMessage);
                 opponentThread.sendWARMessage(opponentGameResultMessage);
+                file.delete();
             }
 
         } else {
@@ -178,27 +188,63 @@ public class WARService {
         }
     }
 
+    public void sendHashCodeToFollower(Correspondent correspondent){
+        file = new File("WARGame.json");
+        ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
+        followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
+    }
+
+    public void handleFollowerUpdate(){
+        file = new File("WARGame.json");
+        for(int i=0; i < followers.size(); i++){
+            if(!followers.get(i).isUpdated() && file.length() != 0){
+                System.out.println("JSON file transmit " + followers.get(i));
+                ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
+                //followerThread.sendFile(file);
+                //sendHashCodeToFollower(followerThread, file);
+                followers.get(i).setUpdated(true);
+            }
+
+        }
+    }
     public List<WARGame> getOngoingGames() {
         return this.ongoingGames;
     }
 
-    public void updateGame(WARGame game) {
+    public void updateGame(WARGame game){
         warRepository.updateGame(game);
-        System.out.println("hi");
-        JSONArray playerList = new JSONArray();
-        playerList.add(game.getPlayer1());
-        playerList.add(game.getPlayer2());
 
-        try (FileWriter file = new FileWriter("WARGame.json")) {
+        String player1 = new Gson().toJson(game.getPlayer1());
+        String player2 = new Gson().toJson(game.getPlayer1());
 
-            file.write(playerList.toJSONString());
-            file.flush();
-            file.write(game.getNumRounds());
-            file.flush();
+        try {
+            file = new File("WARGame.json");
+            int roundNum = 0;
+            if(file.length() != 0) {
+                JsonReader rd = new JsonReader(new FileReader(file));
+                rd.beginObject();
+                if(rd.nextName().equalsIgnoreCase("Round Num"))
+                    roundNum = rd.nextInt();
+                rd.close();
+            }
+            JsonWriter wr = new JsonWriter(new FileWriter(file));
+            if(game.getNumRounds() != roundNum){
+                wr.beginObject();
+                wr.name("Round Num").value(game.getNumRounds());
+                wr.name("Players");
+                wr.beginArray();
+                wr.value(player1);
+                wr.value(player2);
+                wr.endArray();
+                wr.endObject();
+                for(int i=0; i<followers.size(); i++)
+                    followers.get(i).setUpdated(false);
+            }
+            wr.flush();
+            wr.close();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }
