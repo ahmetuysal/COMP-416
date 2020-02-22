@@ -94,12 +94,7 @@ public class WARGame {
     public Document generateWARDoc() {
         Document doc2gen = new Document()
                 .append("_id", this.gameID)
-                .append("player1", this.player1)
-                .append("player2", this.player2)
-                .append("created_on", this.createdOn)
-                .append("last_change", this.lastChangedOn)
-                .append("is_started", this.isGameStarted)
-                .append("rounds", this.numRounds);
+                .append("game",this);
         return doc2gen;
     }
 

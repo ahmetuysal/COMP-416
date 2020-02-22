@@ -35,6 +35,7 @@ public class WARService {
     public void initializeGame(Player player1, Player player2) {
         WARGame newGame = new WARGame(player1, player2);
         ongoingGames.add(newGame);
+        warRepository.insertGame(newGame);
         playerToGameMap.put(player1, newGame);
         playerToGameMap.put(player2, newGame);
     }
@@ -103,6 +104,8 @@ public class WARService {
                 }
                 playerThread.sendWARMessage(playerGameResultMessage);
                 opponentThread.sendWARMessage(opponentGameResultMessage);
+                warRepository.deleteGame(game);
+
             }
 
         } else {

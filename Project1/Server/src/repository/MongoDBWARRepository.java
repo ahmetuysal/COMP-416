@@ -24,8 +24,6 @@ import static org.bson.codecs.configuration.CodecRegistries.*;
 public class MongoDBWARRepository implements WARRepository {
     // DB Credentials from configs
     private static MongoDBWARRepository _instance;
-    private String name;
-    private String collection;
 
     public static synchronized MongoDBWARRepository getInstance() {
         if (_instance == null) {
@@ -34,6 +32,8 @@ public class MongoDBWARRepository implements WARRepository {
         return _instance;
     }
 
+    private String name;
+    private String collection;
     private MongoClient mongoClient;
     private MongoDatabase WARDatabase;
 
@@ -49,6 +49,7 @@ public class MongoDBWARRepository implements WARRepository {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         this.name = Configuration.getInstance().getProperty("mongodb.name");
         this.collection = Configuration.getInstance().getProperty("mongodb.collection");
         mongoClient = MongoClients.create(settings);
@@ -81,8 +82,8 @@ public class MongoDBWARRepository implements WARRepository {
     }
 
     @Override
-    public void deleteGame(String objID) {
-        BasicDBObject gq = new BasicDBObject("_id", new ObjectId(objID));
+    public void deleteGame(WARGame gameData) {
+        BasicDBObject gq = new BasicDBObject("_id", gameData.getGameID());
         WARDatabase.getCollection(collection).deleteOne(gq);
     }
 }
