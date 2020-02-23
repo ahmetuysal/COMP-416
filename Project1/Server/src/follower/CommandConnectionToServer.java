@@ -1,20 +1,24 @@
-package connection;
+package follower;
 
 import domain.WARMessage;
+import util.Utilities;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
- * ConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
+ * CommandConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
  * This class is only used in Follower mode to establish a connection with the Master server.
  *
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
-public class ConnectionToServer {
-    protected ObjectInputStream objectInputStream;
-    protected ObjectOutputStream objectOutputStream;
+public class CommandConnectionToServer {
+    private static final int BUFFER_SIZE = 4096;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
     private Socket socket;
+    private int ID = 0;
 
     /**
      * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
@@ -22,8 +26,12 @@ public class ConnectionToServer {
      * @param address IP address of the master server
      * @param port    port number of the server
      */
-    public ConnectionToServer(String address, int port) {
+    public CommandConnectionToServer(String address, int port) {
         connect(address, port);
+        while (new File("Follower-" + ID).exists()) {
+            ID++;
+        }
+        new File("Follower-" + ID).mkdir();
     }
 
     private void connect(String serverAddress, int serverPort) {
@@ -37,17 +45,15 @@ public class ConnectionToServer {
         }
     }
 
+
     /**
-     * Sends the {@code WARMessage} object to the server and retrieves the answer {@code WARMessage} object
+     * Retrieves the answer {@code WARMessage} object from master server
      *
-     * @param message {@code WARMessage} object that will be send to the server
      * @return the received {@code WARMessage} object
      */
-    public WARMessage sendForAnswer(WARMessage message) {
+    public WARMessage waitForAnswer() {
         WARMessage response = null;
         try {
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
             response = (WARMessage) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -55,7 +61,6 @@ public class ConnectionToServer {
         }
         return response;
     }
-
 
     /**
      * Sends the {@code WARMessage} object to the server
@@ -72,37 +77,23 @@ public class ConnectionToServer {
         }
     }
 
-    /**
-     * Receives the {@code File} that contains information about a single game.
-     *
-     * @return the {@code File} sent by master server
-     */
-    public File receiveFile() {
-        File file = new File("Received.json");
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            FileInputStream fileInputStream = new FileInputStream(file);
-            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-            String ch;
-
-            while (dataInputStream.available() > 0) {
-                System.out.println("of");
-                ch = dataInputStream.readUTF();
-                System.out.println("ch " + ch);
-                fileOutputStream.write(Integer.parseInt(ch));
+    public void receiveFile(String fileName) {
+        int count;
+        byte[] buffer = new byte[BUFFER_SIZE];
+        try (FileOutputStream fileOutputStream = new FileOutputStream("Follower-" + ID + "/" + fileName)) {
+            while ((count = objectInputStream.read(buffer)) > 0) {
+                fileOutputStream.write(buffer, 0, count);
             }
-            fileOutputStream.close();
-            fileInputStream.close();
-            dataInputStream.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return file;
+
     }
+
+    public boolean compareChecksumWithFile(byte[] checksum, String fileName) {
+        return Arrays.equals(Utilities.calculateFileChecksum(new File("Follower-" + ID + "/" + fileName)), checksum);
+    }
+
 
     /**
      * Disconnects the socket and closes the object input and output streams

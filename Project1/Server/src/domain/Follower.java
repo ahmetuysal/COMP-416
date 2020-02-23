@@ -9,7 +9,7 @@ public class Follower implements Correspondent {
     private Date lastUpdatedOn;
 
     public Follower() {
-        this.lastUpdatedOn = new Date();
+        this.lastUpdatedOn = new Date(Long.MIN_VALUE);
     }
 
     public Date getLastUpdatedOn() {

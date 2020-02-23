@@ -68,7 +68,6 @@ public class ControllerThread extends Thread {
                                         System.out.println("Game with ID: " + warGame.getGameID().toString());
                                         warService.updateGame(warGame);
                                         Utilities.writeWARGameToJSON(warGame);
-                                        warGame.setLastChangedOn(currentTime);
                                         System.out.println("Synchronization of game with ID: " + warGame.getGameID().toString() + " is done with MongoDB");
                                     } else {
                                         System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
@@ -101,8 +100,8 @@ public class ControllerThread extends Thread {
             else if (correspondentType == (byte) 1) {
                 warService.registerFollower(serverThread);
             }
-        } else if (warMessage.getType() == 8) {
-            warService.sendHashCodeToFollower(serverThread.getCorrespondent());
+        } else if (warMessage.getType() == 9) {
+            warService.fileTransferValidation(warMessage, serverThread);
         }
     }
 
@@ -134,12 +133,15 @@ public class ControllerThread extends Thread {
             // correspondent connected
             case 6:
                 return warMessage.getPayload() != null && warMessage.getPayload().length == 1;
-            // follower communication
+            // file hash
             case 7:
                 return true;
-            // ask hashcode
+            // receive file with name
             case 8:
                 return true;
+            // file transmit validation
+            case 9:
+                return warMessage.getPayload() != null && warMessage.getPayload().length > 0;
             // invalid WARMessage type
             default:
                 return false;

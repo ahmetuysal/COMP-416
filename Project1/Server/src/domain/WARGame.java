@@ -198,6 +198,7 @@ public class WARGame {
      */
     public void setNumRounds(int rounds) {
         this.numRounds = rounds;
+        this.lastChangedOn = new Date();
     }
 
 }
