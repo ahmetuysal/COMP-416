@@ -1,16 +1,11 @@
 package controller;
 
 import contract.WARMessage;
-import domain.Correspondent;
-import domain.Follower;
-import domain.Player;
 import network.ServerThread;
 import service.WARService;
+import util.Utilities;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -43,7 +38,6 @@ public class ControllerThread extends Thread {
                 WARMessageServerThreadPair messageServerThreadPair = waitingMessages.poll();
                 handleWARMessage(messageServerThreadPair.getWarMessage(), messageServerThreadPair.getServerThread());
             }
-            handleFollowerUpdate();
             Date currentTime = new Date();
             if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
                 warService.getOngoingGames().stream()
@@ -52,13 +46,15 @@ public class ControllerThread extends Thread {
                                 if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
                                     System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:\n");
                                     warService.updateGame(warGame);
-                                    // backup to the follower here as well?
+                                    // backup to the file
+                                    Utilities.writeWARGameToJSON(warGame);
                                     warGame.setLastChangedOn(currentTime);
                                 } else {
                                     System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
                                 }
                         });
                 lastUpdatedOn = currentTime;
+                warService.handleFollowerUpdate();
             }
         }
     }

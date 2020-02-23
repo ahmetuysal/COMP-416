@@ -4,6 +4,7 @@ import contract.WARMessage;
 import controller.ControllerThread;
 import domain.Correspondent;
 import domain.Player;
+import service.WARService;
 
 import java.io.*;
 import java.net.Socket;
@@ -68,7 +69,7 @@ public class ServerThread extends Thread {
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
             }
         } catch (IOException e) {
-            //TODO: playeer is disconnected, declare the other player as winner.
+            WARService.getInstance().handleTermination(this.correspondent);
             System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
         } catch (NullPointerException e) {
             System.err.println("Server Thread. Run.Client " + this.getName() + " Closed");
@@ -108,7 +109,6 @@ public class ServerThread extends Thread {
 
    public void terminate() {
        try {
-           // TODO: client has left, terminate the game if it's not finished
            System.out.println("Closing the connection");
            if (objectInputStream != null) {
                objectInputStream.close();

@@ -34,17 +34,14 @@ public class WARService {
     private WARGame newGame;
     private List<WARGame> ongoingGames;
     private Map<Player, WARGame> playerToGameMap;
-    private Map<Follower, WARGame> followerToGameMap;
     private Map<Correspondent, ServerThread> correspondentToServerThreadMap;
     private List<Follower> followers;
-    private File file;
 
     private WARService() {
         warRepository = MongoDBWARRepository.getInstance();
         ongoingGames = new ArrayList<>();
         followers = new ArrayList<>();
         playerToGameMap = new HashMap<>();
-        followerToGameMap = new HashMap<>();
         correspondentToServerThreadMap = new HashMap<>();
     }
 
@@ -64,7 +61,6 @@ public class WARService {
         followers.add(follower);
         serverThread.setCorrespondent(follower);
         this.correspondentToServerThreadMap.put(follower, serverThread);
-        followerToGameMap.put(follower, newGame);
     }
 
     public synchronized void registerPlayer(ServerThread serverThread) {
@@ -157,7 +153,7 @@ public class WARService {
                 }
                 playerThread.sendWARMessage(playerGameResultMessage);
                 opponentThread.sendWARMessage(opponentGameResultMessage);
-                file.delete();
+                // TODO: delete JSON file
             }
 
         } else {
@@ -193,36 +189,44 @@ public class WARService {
     }
 
     public void handleTermination(Correspondent correspondent) {
-
-        //TODO: Handling game termination after the user has left.
-
+        if (correspondent instanceof Follower) {
+            // TODO: handle follower termination
+        } else if (correspondent instanceof  Player) {
+            // TODO: handle player termination
+        }
 
     }
 
     public void sendHashCodeToFollower(Correspondent correspondent){
-        WARGame game = followerToGameMap.get(correspondent);
-        file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
-        ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
-        followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
+//        file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
+//        ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
+//        followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
     }
 
     public void handleFollowerUpdate(){
+        followers.stream().forEach(follower -> {
+            Date followerLastUpdateTime = follower.getLastUpdatedOn();
+            ongoingGames.stream()
+                    .filter(game-> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
+                    .forEach(warGame -> {
 
-        for(int i=0; i < followers.size(); i++){
-            WARGame game = followerToGameMap.get(followers.get(i));
-            if(game != null && game.getPlayer1() != null && game.getPlayer1() != null){
-                file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
-                if(!followers.get(i).isUpdated() && file.length() != 0){
-                    System.out.println("JSON file transmit " + followers.get(i));
-                    ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
-                    //followerThread.sendFile(file);
-                    //sendHashCodeToFollower(followerThread, file);
-                    followers.get(i).setUpdated(true);
-                }
-            }
+                            }
+                    );
+        });
 
-
-        }
+//        for(int i=0; i < followers.size(); i++){
+//            WARGame game = followerToGameMap.get(followers.get(i));
+//            if(game != null && game.getPlayer1() != null && game.getPlayer1() != null){
+//                file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
+//                if(!followers.get(i).isUpdated() && file.length() != 0){
+//                    System.out.println("JSON file transmit " + followers.get(i));
+//                    ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
+//                    //followerThread.sendFile(file);
+//                    //sendHashCodeToFollower(followerThread, file);
+//                    followers.get(i).setUpdated(true);
+//                }
+//            }
+//        }
     }
 
     public List<WARGame> getOngoingGames() {
@@ -231,42 +235,6 @@ public class WARService {
 
     public void updateGame(WARGame game){
         warRepository.updateGame(game);
-
-        String player1 = new Gson().toJson(game.getPlayer1());
-        String player2 = new Gson().toJson(game.getPlayer2());
-
-        try {
-            file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
-            int roundNum = 0;
-            if(file.length() != 0) {
-                JsonReader rd = new JsonReader(new FileReader(file));
-                rd.beginObject();
-                if(rd.nextName().equalsIgnoreCase("Round Num"))
-                    roundNum = rd.nextInt();
-                rd.close();
-            }
-            JsonWriter wr = new JsonWriter(new FileWriter(file));
-            if(game.getNumRounds() != roundNum){
-                wr.beginObject();
-                wr.name("Round Num").value(game.getNumRounds());
-                wr.name("Players");
-                wr.beginArray();
-                wr.value(player1);
-                wr.value(player2);
-                wr.endArray();
-                wr.endObject();
-                for(int i=0; i<followers.size(); i++)
-                    followers.get(i).setUpdated(false);
-            }
-            wr.flush();
-            wr.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    public Map<Follower, WARGame> getFollowerToGameMap() {
-        return followerToGameMap;
-    }
 }
