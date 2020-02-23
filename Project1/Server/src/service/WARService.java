@@ -23,6 +23,11 @@ public class WARService {
     private Map<Correspondent, ServerThread> correspondentToServerThreadMap;
     private List<Follower> followers;
 
+    /**
+     * Initializes the WARService object that interprets the WARMessages and implements the game logic,
+     * while acting as an interface between additional components such as database, etc. and threads.
+     *
+     */
     private WARService() {
         warRepository = MongoDBWARRepository.getInstance();
         ongoingGames = new ArrayList<>();
@@ -31,10 +36,23 @@ public class WARService {
         correspondentToServerThreadMap = new HashMap<>();
     }
 
+    /**
+     * Gets the {@code WARService} object that takes an active part in interpretation of WARMessages and in game
+     * implementation.
+     *
+     * @return {@code WARMessage} to perform message interpretation and game based services.
+     */
     public static synchronized WARService getInstance() {
         return _instance;
     }
 
+    /**
+     * Initializes a new {@code WARGame} object with the give players, and performs the corresponding list and map
+     * placements of such objects.
+     *
+     * @param player1 Player 1 of the game to be initialized.
+     * @param player2 Player 2 of the game to be initialized.
+     */
     private void initializeGame(Player player1, Player player2) {
         newGame = new WARGame(player1, player2);
         ongoingGames.add(newGame);
@@ -43,6 +61,12 @@ public class WARService {
         playerToGameMap.put(player2, newGame);
     }
 
+    /**
+     * Generates a new follower to be added to the followers array, and perform the mapping with the
+     * corresponding server thread (via the contained map).
+     *
+     * @param serverThread The server thread to map the newly generated follower to.
+     */
     public synchronized void registerFollower(ServerThread serverThread) {
         Follower follower = new Follower();
         followers.add(follower);
@@ -50,6 +74,12 @@ public class WARService {
         this.correspondentToServerThreadMap.put(follower, serverThread);
     }
 
+    /**
+     * Registers players and redirects them to the matchmaking process.
+     * If the matchmaking is complete, a new game with the provided players is initiated.
+     *
+     * @param serverThread The server thread, the {@code Correspondent} of which is the newly initialized player.
+     */
     public synchronized void registerPlayer(ServerThread serverThread) {
         Player player = new Player();
         serverThread.setCorrespondent(player);
@@ -72,6 +102,14 @@ public class WARService {
 
     }
 
+    /**
+     * Compares the played card values to determine the outcome of the current round.
+     * Sets the number of rounds played.
+     * Checks whether the game has ended to output the game result, and acts accordingly.
+     *
+     * @param message WARMessage received by the player that contains the card value to compare.
+     * @param correspondent {@code Correspondent} to be cast into a {@code Player} object that sent the above message.
+     */
     public void handlePlayCardMessage(WARMessage message, Correspondent correspondent) {
         if (!(correspondent instanceof Player)) {
             System.out.println("A correspondent with non-player type tried to send play card message");
@@ -151,6 +189,14 @@ public class WARService {
         game.setLastChangedOn(new Date());
     }
 
+    /**
+     * Assigns the name of the player, and then sends the corresponding card decks while starting the game
+     * if both names have been provided.
+     * Utilizes both the given player and its opponent while performing the above mentioned game starting logic.
+     *
+     * @param message {@code WARMessage} that contains the player name.
+     * @param correspondent {@code Correspondent} to be cast into a {@code Player} object that sent the above message.
+     */
     public void handleWantGameMessage(WARMessage message, Correspondent correspondent) {
         if (!(correspondent instanceof Player)) {
             System.out.println("A correspondent with non-player type tried to send want game message");
@@ -175,6 +221,13 @@ public class WARService {
         }
     }
 
+    /**
+     * Terminates the game mapped to the provided {@code Correspondent}, i.e. the {@code Player} that caused the
+     * termination of the game. Also sends a message to the opponent of the player provided, indicating that it
+     * has won the game, and therefore terminates its game as well.
+     *
+     * @param correspondent {@code Correspondent} to be cast into a {@code Player} object that terminated the game.
+     */
     public void handleTermination(Correspondent correspondent) {
         if (correspondent instanceof Follower) {
             // TODO: handle follower termination
@@ -194,6 +247,10 @@ public class WARService {
 
     }
 
+    /**
+     * Updates the followers if there has been any change in the files.
+     *
+     */
     public void handleFollowerUpdate() {
         followers.parallelStream().forEach(follower -> {
             Date followerLastUpdateTime = follower.getLastUpdatedOn();
@@ -210,7 +267,15 @@ public class WARService {
 
     }
 
-    private void sendWARGameFileToFollower(String fileName, ServerThread followerThread) {
+  
+    /**
+     * Sends the name of the file and the file itself, respectively, to the follower that will save it.
+     * Hash values of the file content are later sent to the follower for validation.
+     *
+     * @param fileName Name of the file to be sent.
+     * @param followerThread The thread of {@code Follower} that saves the file.
+     */
+    private void sendWARGameFileToFollower(String fileName, ServerThread followerThread){
         WARMessage fileNameMessage = new WARMessage((byte) 8, fileName.getBytes());
         followerThread.sendWARMessage(fileNameMessage);
         File warGameFile = new File(fileName);
@@ -222,8 +287,16 @@ public class WARService {
     }
 
 
-    public void fileTransferValidation(WARMessage validationMessage, ServerThread followerThread) {
-        if (validationMessage.getType() == 9) {
+
+    /**
+     * First checks if the message is a file transmit validation message, then performs the consistency check.
+     * The outcome is printed.
+     *
+     * @param validationMessage {@code WARMessage} to check the type of.
+     * @param followerThread The thread of {@code Follower} to send the file to revalidate.
+     */
+    public void fileTransferValidation(WARMessage validationMessage, ServerThread followerThread){
+        if(validationMessage.getType() == 9){
             String message = new String(validationMessage.getPayload());
             int indexOfSpace = message.indexOf(" ");
 
@@ -234,14 +307,31 @@ public class WARService {
         }
     }
 
+    /**
+     * Gets the list of the ongoing WARGames
+     *
+     * @return list of WARGames that have not been terminated.
+     */
     public List<WARGame> getOngoingGames() {
         return this.ongoingGames;
     }
 
+    /**
+     * Updates the game data in the database with the provided game data.
+     *
+     * @param game Newly provided {@code WARGame} data to update the game data contained in the database with.
+     */
     public void updateGame(WARGame game) {
         warRepository.updateGame(game);
     }
 
+    /**
+     * Completely terminates the provided game, by also removing the players contained within the game and their
+     * corresponding threads.
+     * Previously generated JSON files and the documents contained in the database are also deleted.
+     *
+     * @param game {@code WARGame} to be terminated.
+     */
     private void terminateGame(WARGame game) {
         Player player1 = game.getPlayer1();
         Player player2 = game.getPlayer2();

@@ -18,11 +18,17 @@ public class Server {
     private WARService warService;
     private CommandConnectionToServer commandConnectionToServer;
 
+
     /**
-     * Initiates a server socket on the input port, listens to the line, on receiving an incoming
+     *
+     * If serverType is master, initiates a server socket on the input port, listens to the line, on receiving an incoming
      * connection creates and starts a ServerThread on the client
+     * If serverType is follower, sends a message to the master server to indicates its type
+     * and listens to get files from the master server
      *
      * @param port port to open a socket on
+     * @param serverType the value to check if the server is master or follower
+     * @throws Exception not a server type if the input is not "master" or "follower"
      */
     public Server(int port, String serverType) throws Exception {
         if (serverType.equalsIgnoreCase("Master")) {
@@ -65,6 +71,10 @@ public class Server {
         }
     }
 
+    /**
+     * Listens and receives a file from the server.
+     * Checks if the file is valid and sends and answer back to the server.
+     */
     private void communicate() {
         WARMessage receiveFileMessage = commandConnectionToServer.waitForAnswer();
         if (receiveFileMessage.getType() == 8) {
