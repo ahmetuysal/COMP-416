@@ -192,6 +192,13 @@ public class WARService {
         }
     }
 
+    public void handleTermination(Correspondent correspondent) {
+
+        //TODO: Handling game termination after the user has left.
+
+
+    }
+
     public void sendHashCodeToFollower(Correspondent correspondent){
         WARGame game = followerToGameMap.get(correspondent);
         file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
@@ -217,6 +224,7 @@ public class WARService {
 
         }
     }
+
     public List<WARGame> getOngoingGames() {
         return this.ongoingGames;
     }

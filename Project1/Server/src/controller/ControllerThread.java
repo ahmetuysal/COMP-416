@@ -70,8 +70,7 @@ public class ControllerThread extends Thread {
                 warService.handleWantGameMessage(warMessage, serverThread.getCorrespondent());
             } else if (warMessage.getType() == 2) {
                 warService.handlePlayCardMessage(warMessage, serverThread.getCorrespondent());
-            }
-            else if (warMessage.getType() == 6) {
+            } else if (warMessage.getType() == 6) {
                 byte correspondentType = warMessage.getPayload()[0];
                 // player connected
                 if (correspondentType == (byte) 0) {
@@ -81,9 +80,9 @@ public class ControllerThread extends Thread {
                 else if (correspondentType == (byte) 1) {
                     warService.registerFollower(serverThread);
                 }
-            }else if (warMessage.getType() == 8) {
+            } else if (warMessage.getType() == 8) {
                 warService.sendHashCodeToFollower(serverThread.getCorrespondent());
-            }
+            } 
         } else {
             // TODO: send error message
         }
@@ -123,6 +122,10 @@ public class ControllerThread extends Thread {
                 return true;
             // ask hashcode
             case 8:
+                return true;
+            case 9:
+                return true;
+            case 10:
                 return true;
                 // invalid WARMessage type
             default:

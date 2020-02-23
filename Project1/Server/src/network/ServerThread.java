@@ -68,31 +68,14 @@ public class ServerThread extends Thread {
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
             }
         } catch (IOException e) {
+            //TODO: playeer is disconnected, declare the other player as winner.
             System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
         } catch (NullPointerException e) {
             System.err.println("Server Thread. Run.Client " + this.getName() + " Closed");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            try {
-                // TODO: client has left, terminate the game if it's not finished
-                System.out.println("Closing the connection");
-                if (objectInputStream != null) {
-                    objectInputStream.close();
-                    System.err.println("Socket Input Stream Closed");
-                }
-                if (objectOutputStream != null) {
-                    objectOutputStream.close();
-                    System.err.println("Socket Out Closed");
-                }
-                if (socket != null) {
-                    socket.close();
-                    System.err.println("Socket Closed");
-                }
-
-            } catch (IOException ie) {
-                System.err.println("Socket Close Error");
-            }
+            terminate();
         }
     }
 
@@ -120,6 +103,27 @@ public class ServerThread extends Thread {
            e.printStackTrace();
        } catch (IOException e) {
            e.printStackTrace();
+       }
+   }
+
+   public void terminate() {
+       try {
+           // TODO: client has left, terminate the game if it's not finished
+           System.out.println("Closing the connection");
+           if (objectInputStream != null) {
+               objectInputStream.close();
+               System.err.println("Socket Input Stream Closed");
+           }
+           if (objectOutputStream != null) {
+               objectOutputStream.close();
+               System.err.println("Socket Out Closed");
+           }
+           if (socket != null) {
+               socket.close();
+               System.err.println("Socket Closed");
+           }
+       } catch (IOException ie) {
+           System.err.println("Socket Close Error");
        }
    }
 

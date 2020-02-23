@@ -6,6 +6,7 @@ import contract.WARMessage;
 import util.Utilities;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -45,18 +46,36 @@ public class WARGame {
     private void playTurn() {
         System.out.println("Cards: " + cards.toString());
         Scanner sc = new Scanner(System.in);
-        System.out.print("Select which card to play: ");
-        byte card = sc.nextByte();
-        while (!cards.contains(card)) {
-            System.out.print("Select a valid card: ");
-            card = sc.nextByte();
+        System.out.print("What would you like to do?"
+                + "\n1: Play card."
+                + "\n2: Start a new game."
+                + "\n3: Quit game."
+                + "\nChoice: ");
+        byte opt = sc.nextByte();
+
+        if (opt == 1) {
+            Random rand_ind = new Random();
+            Byte card = cards.get(rand_ind.nextInt(cards.size()));
+            /*
+            while (!cards.contains(card)) {
+                System.out.print("Select a valid card: ");
+                card = sc.nextByte();
+            }
+            */
+            cards.remove(card);
+
+            WARMessage playCardMessage = new WARMessage((byte) 2, new byte[]{card});
+            WARMessage playResultMessage = connectionToServer.sendForAnswer(playCardMessage);
+            System.out.println("Play result: " + playResultMessage.toString());
+
+        } else if (opt == 2) {
+            //TODO: Start a new game
+        } else if (opt == 3) {
+            this.cards.clear();
+            connectionToServer.disconnect();
+        } else {
+            System.out.println("Incorrect input!");
         }
-
-        cards.remove((Byte) card);
-
-        WARMessage playCardMessage = new WARMessage((byte) 2, new byte[]{card});
-        WARMessage playResultMessage = connectionToServer.sendForAnswer(playCardMessage);
-        System.out.println("Play result: " + playResultMessage.toString());
     }
 
 }
