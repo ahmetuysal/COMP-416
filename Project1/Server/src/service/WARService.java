@@ -31,8 +31,10 @@ public class WARService {
     private static final WARService _instance = new WARService();
     private Player waitingPlayer = null;
     private WARRepository warRepository;
+    private WARGame newGame;
     private List<WARGame> ongoingGames;
     private Map<Player, WARGame> playerToGameMap;
+    private Map<Follower, WARGame> followerToGameMap;
     private Map<Correspondent, ServerThread> correspondentToServerThreadMap;
     private List<Follower> followers;
     private File file;
@@ -42,6 +44,7 @@ public class WARService {
         ongoingGames = new ArrayList<>();
         followers = new ArrayList<>();
         playerToGameMap = new HashMap<>();
+        followerToGameMap = new HashMap<>();
         correspondentToServerThreadMap = new HashMap<>();
     }
 
@@ -50,7 +53,7 @@ public class WARService {
     }
 
     private void initializeGame(Player player1, Player player2) {
-        WARGame newGame = new WARGame(player1, player2);
+        newGame = new WARGame(player1, player2);
         ongoingGames.add(newGame);
         playerToGameMap.put(player1, newGame);
         playerToGameMap.put(player2, newGame);
@@ -61,6 +64,7 @@ public class WARService {
         followers.add(follower);
         serverThread.setCorrespondent(follower);
         this.correspondentToServerThreadMap.put(follower, serverThread);
+        followerToGameMap.put(follower, newGame);
     }
 
     public synchronized void registerPlayer(ServerThread serverThread) {
@@ -189,21 +193,27 @@ public class WARService {
     }
 
     public void sendHashCodeToFollower(Correspondent correspondent){
-        file = new File("WARGame.json");
+        WARGame game = followerToGameMap.get(correspondent);
+        file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
         ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
         followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
     }
 
     public void handleFollowerUpdate(){
-        file = new File("WARGame.json");
+
         for(int i=0; i < followers.size(); i++){
-            if(!followers.get(i).isUpdated() && file.length() != 0){
-                System.out.println("JSON file transmit " + followers.get(i));
-                ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
-                //followerThread.sendFile(file);
-                //sendHashCodeToFollower(followerThread, file);
-                followers.get(i).setUpdated(true);
+            WARGame game = followerToGameMap.get(followers.get(i));
+            if(game != null && game.getPlayer1() != null && game.getPlayer1() != null){
+                file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
+                if(!followers.get(i).isUpdated() && file.length() != 0){
+                    System.out.println("JSON file transmit " + followers.get(i));
+                    ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
+                    //followerThread.sendFile(file);
+                    //sendHashCodeToFollower(followerThread, file);
+                    followers.get(i).setUpdated(true);
+                }
             }
+
 
         }
     }
@@ -215,10 +225,10 @@ public class WARService {
         warRepository.updateGame(game);
 
         String player1 = new Gson().toJson(game.getPlayer1());
-        String player2 = new Gson().toJson(game.getPlayer1());
+        String player2 = new Gson().toJson(game.getPlayer2());
 
         try {
-            file = new File("WARGame.json");
+            file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
             int roundNum = 0;
             if(file.length() != 0) {
                 JsonReader rd = new JsonReader(new FileReader(file));
@@ -246,5 +256,9 @@ public class WARService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Map<Follower, WARGame> getFollowerToGameMap() {
+        return followerToGameMap;
     }
 }

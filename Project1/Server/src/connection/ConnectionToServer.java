@@ -1,6 +1,9 @@
 package connection;
 
 import contract.WARMessage;
+import domain.WARGame;
+import network.Server;
+import service.WARService;
 
 import java.io.*;
 import java.net.Socket;
@@ -102,7 +105,7 @@ public class ConnectionToServer {
     }
 
     public File receiveFile() {
-        File file =new File("WARGame.json");
+        File file = new File("Recieved.json");
         try {
             FileOutputStream fileOutputStream=new FileOutputStream(file);
             FileInputStream fileInputStream=new FileInputStream(file);

@@ -3,6 +3,7 @@ package network;
 import configuration.Configuration;
 import connection.ConnectionToServer;
 import contract.WARMessage;
+import domain.WARGame;
 import service.WARService;
 
 import java.io.File;
