@@ -257,9 +257,9 @@ public class WARService {
             ongoingGames.stream()
                     .filter(game -> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
                     .forEach(warGame -> {
-                        // TODO: extract to method and send again if fails
-                        ServerThread followerThread = correspondentToServerThreadMap.get(follower);
-                        sendWARGameFileToFollower(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json", followerThread);
+                                // TODO: extract to method and send again if fails
+                                ServerThread followerThread = correspondentToServerThreadMap.get(follower);
+                                sendWARGameFileToFollower(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json", followerThread);
                             }
                     );
             follower.setLastUpdatedOn(new Date());
@@ -267,6 +267,7 @@ public class WARService {
 
     }
 
+  
     /**
      * Sends the name of the file and the file itself, respectively, to the follower that will save it.
      * Hash values of the file content are later sent to the follower for validation.
@@ -286,6 +287,7 @@ public class WARService {
     }
 
 
+
     /**
      * First checks if the message is a file transmit validation message, then performs the consistency check.
      * The outcome is printed.
@@ -298,10 +300,10 @@ public class WARService {
             String message = new String(validationMessage.getPayload());
             int indexOfSpace = message.indexOf(" ");
 
-            if(message.startsWith("CONSISTENCY_CHECK_PASSED"))
+            if (message.startsWith("CONSISTENCY_CHECK_PASSED"))
                 return;
-            else if(message.startsWith("RETRANSMIT"))
-                sendWARGameFileToFollower(message.substring(indexOfSpace+1), followerThread);
+            else if (message.startsWith("RETRANSMIT"))
+                sendWARGameFileToFollower(message.substring(indexOfSpace + 1), followerThread);
         }
     }
 
