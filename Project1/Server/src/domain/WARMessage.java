@@ -3,6 +3,9 @@ package domain;
 import java.io.Serializable;
 import java.util.Arrays;
 
+/**
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
+ */
 public class WARMessage implements Serializable {
     private static final long serialVersionUID = -5817893373429527297L;
     private final byte type;
