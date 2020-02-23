@@ -1,9 +1,10 @@
 package repository;
 
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import configuration.Configuration;
 import domain.WARGame;
@@ -16,7 +17,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.bson.codecs.configuration.CodecRegistries.*;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
@@ -24,19 +26,10 @@ import static org.bson.codecs.configuration.CodecRegistries.*;
 public class MongoDBWARRepository implements WARRepository {
     // DB Credentials from configs
     private static MongoDBWARRepository _instance;
-
-    public static synchronized MongoDBWARRepository getInstance() {
-        if (_instance == null) {
-            _instance = new MongoDBWARRepository();
-        }
-        return _instance;
-    }
-
     private String name;
     private String collection;
     private MongoClient mongoClient;
     private MongoDatabase WARDatabase;
-
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -55,6 +48,13 @@ public class MongoDBWARRepository implements WARRepository {
         mongoClient = MongoClients.create(settings);
         WARDatabase = mongoClient.getDatabase(name);
 
+    }
+
+    public static synchronized MongoDBWARRepository getInstance() {
+        if (_instance == null) {
+            _instance = new MongoDBWARRepository();
+        }
+        return _instance;
     }
 
     @Override

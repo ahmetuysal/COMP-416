@@ -1,6 +1,6 @@
 package connection;
 
-import contract.WARMessage;
+import domain.WARMessage;
 
 import java.io.EOFException;
 import java.io.IOException;

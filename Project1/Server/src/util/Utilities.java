@@ -1,12 +1,10 @@
 package util;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import domain.WARGame;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +48,7 @@ public final class Utilities {
     }
 
     public static void writeWARGameToJSON(WARGame warGame) {
-        File file =new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
+        File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
         Gson jsonEncoder = new Gson();
         String player1 = jsonEncoder.toJson(warGame.getPlayer1());
         String player2 = jsonEncoder.toJson(warGame.getPlayer2());

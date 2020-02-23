@@ -2,7 +2,7 @@ package game;
 
 import configuration.Configuration;
 import connection.ConnectionToServer;
-import contract.WARMessage;
+import domain.WARMessage;
 import util.Utilities;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package controller;
 
-import contract.WARMessage;
+import domain.WARMessage;
 import network.ServerThread;
 
 /**

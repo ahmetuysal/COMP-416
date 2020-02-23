@@ -2,8 +2,7 @@ package network;
 
 import configuration.Configuration;
 import connection.ConnectionToServer;
-import contract.WARMessage;
-import domain.WARGame;
+import domain.WARMessage;
 import service.WARService;
 
 import java.io.File;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -71,7 +69,7 @@ public class Server {
 
     private void communicate() {
         File receivedFile = connectionToServer.receiveFile();
-        if(receivedFile.length() != 0) {
+        if (receivedFile.length() != 0) {
             byte hashCode = connectionToServer.sendForAnswer(new WARMessage((byte) 8, new byte[]{})).getPayload()[0];
             System.out.println("hallo " + hashCode);
             if (hashCode == (byte) receivedFile.hashCode())

@@ -1,4 +1,4 @@
-package contract;
+package domain;
 
 import java.io.Serializable;
 import java.util.Arrays;

@@ -1,6 +1,6 @@
 package controller;
 
-import contract.WARMessage;
+import domain.WARMessage;
 import network.ServerThread;
 import service.WARService;
 import util.Utilities;
@@ -40,7 +40,7 @@ public class ControllerThread extends Thread {
             }
             Date currentTime = new Date();
             if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
-                warService.getOngoingGames().stream()
+                warService.getOngoingGames()
                         .forEach(
                                 warGame -> {
                                     if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {

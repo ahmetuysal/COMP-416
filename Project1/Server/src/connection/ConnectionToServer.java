@@ -1,13 +1,9 @@
 package connection;
 
-import contract.WARMessage;
-import domain.WARGame;
-import network.Server;
-import service.WARService;
+import domain.WARMessage;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.Buffer;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -107,13 +103,13 @@ public class ConnectionToServer {
     public File receiveFile() {
         File file = new File("Recieved.json");
         try {
-            FileOutputStream fileOutputStream=new FileOutputStream(file);
-            FileInputStream fileInputStream=new FileInputStream(file);
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            FileInputStream fileInputStream = new FileInputStream(file);
             DataInputStream dataInputStream = new DataInputStream(fileInputStream);
             //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             String ch;
 
-            while(dataInputStream.available() > 0){
+            while (dataInputStream.available() > 0) {
                 System.out.println("of");
                 ch = dataInputStream.readUTF();
                 System.out.println("ch " + ch);

@@ -1,6 +1,6 @@
 package network;
 
-import contract.WARMessage;
+import domain.WARMessage;
 import controller.ControllerThread;
 import domain.Correspondent;
 import service.WARService;
@@ -89,42 +89,42 @@ public class ServerThread extends Thread {
         }
     }
 
-   public void sendFile(File file) {
-       FileInputStream fis = null;
-       try {
-           byte[] mybytearray = new byte[(int) file.length() + 1];
-           fis = new FileInputStream(file);
-           BufferedInputStream bis = new BufferedInputStream(fis);
-           bis.read(mybytearray, 0, mybytearray.length);
-           objectOutputStream.write(mybytearray, 0, mybytearray.length);
-           objectOutputStream.flush();
-           bis.close();
-       } catch (FileNotFoundException e) {
-           e.printStackTrace();
-       } catch (IOException e) {
-           e.printStackTrace();
-       }
-   }
+    public void sendFile(File file) {
+        FileInputStream fis = null;
+        try {
+            byte[] mybytearray = new byte[(int) file.length() + 1];
+            fis = new FileInputStream(file);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            bis.read(mybytearray, 0, mybytearray.length);
+            objectOutputStream.write(mybytearray, 0, mybytearray.length);
+            objectOutputStream.flush();
+            bis.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-   public void terminate() {
-       try {
-           System.out.println("Closing the connection");
-           if (objectInputStream != null) {
-               objectInputStream.close();
-               System.err.println("Socket Input Stream Closed");
-           }
-           if (objectOutputStream != null) {
-               objectOutputStream.close();
-               System.err.println("Socket Out Closed");
-           }
-           if (socket != null) {
-               socket.close();
-               System.err.println("Socket Closed");
-           }
-       } catch (IOException ie) {
-           System.err.println("Socket Close Error");
-       }
-       isThreadKilled = true;
-   }
+    public void terminate() {
+        try {
+            System.out.println("Closing the connection");
+            if (objectInputStream != null) {
+                objectInputStream.close();
+                System.err.println("Socket Input Stream Closed");
+            }
+            if (objectOutputStream != null) {
+                objectOutputStream.close();
+                System.err.println("Socket Out Closed");
+            }
+            if (socket != null) {
+                socket.close();
+                System.err.println("Socket Closed");
+            }
+        } catch (IOException ie) {
+            System.err.println("Socket Close Error");
+        }
+        isThreadKilled = true;
+    }
 
 }

@@ -1,26 +1,15 @@
 package service;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import contract.WARMessage;
+import domain.WARMessage;
 import domain.Correspondent;
 import domain.Follower;
 import domain.Player;
 import domain.WARGame;
 import network.ServerThread;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
 import util.Utilities;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -192,7 +181,7 @@ public class WARService {
     public void handleTermination(Correspondent correspondent) {
         if (correspondent instanceof Follower) {
             // TODO: handle follower termination
-        } else if (correspondent instanceof  Player) {
+        } else if (correspondent instanceof Player) {
             // TODO: handle player termination
             Player player = (Player) correspondent;
             if (!playerToGameMap.containsKey(player)) {
@@ -208,17 +197,17 @@ public class WARService {
 
     }
 
-    public void sendHashCodeToFollower(Correspondent correspondent){
+    public void sendHashCodeToFollower(Correspondent correspondent) {
 //        file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
 //        ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
 //        followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
     }
 
-    public void handleFollowerUpdate(){
-        followers.stream().forEach(follower -> {
+    public void handleFollowerUpdate() {
+        followers.forEach(follower -> {
             Date followerLastUpdateTime = follower.getLastUpdatedOn();
             ongoingGames.stream()
-                    .filter(game-> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
+                    .filter(game -> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
                     .forEach(warGame -> {
 
                             }
@@ -244,7 +233,7 @@ public class WARService {
         return this.ongoingGames;
     }
 
-    public void updateGame(WARGame game){
+    public void updateGame(WARGame game) {
         warRepository.updateGame(game);
     }
 

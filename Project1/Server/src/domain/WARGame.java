@@ -2,12 +2,8 @@ package domain;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import util.Utilities;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -98,16 +94,16 @@ public class WARGame {
     public Document generateWARDoc() {
         Document doc2gen = new Document()
                 .append("_id", this.gameID)
-                .append("game",this);
+                .append("game", this);
         return doc2gen;
     }
 
     public void loadFromDoc(Document doc) {
-        this.gameID =  doc.getObjectId("_id");
+        this.gameID = doc.getObjectId("_id");
         this.createdOn = doc.getDate("created_on");
         this.lastChangedOn = doc.getDate("last_change");
-        this.player1 =  (Player) doc.get("player1");
-        this.player2 =  (Player) doc.get("player2");
+        this.player1 = (Player) doc.get("player1");
+        this.player2 = (Player) doc.get("player2");
         this.isGameStarted = doc.getBoolean("is_started");
         this.numRounds = doc.getInteger("rounds");
     }
