@@ -2,10 +2,11 @@ package game;
 
 import configuration.Configuration;
 import connection.ConnectionToServer;
-import contract.WARMessage;
+import domain.WARMessage;
 import util.Utilities;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -17,15 +18,20 @@ public class WARGame {
     private ConnectionToServer connectionToServer;
 
     public WARGame() {
+        startNewGame();
+    }
+
+    private void startNewGame() {
         connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"),
                 Integer.parseInt(Configuration.getInstance().getProperty("server.port")));
         this.cards = Utilities.byteArrayToByteList(connectToGame());
-        while (!cards.isEmpty()) {
+        while (!cards.isEmpty() && connectionToServer.isConnectionActive()) {
             playTurn();
         }
     }
-
     private byte[] connectToGame() {
+        WARMessage iAmPlayerMessage = new WARMessage((byte) 6, new byte[]{0});
+        connectionToServer.send(iAmPlayerMessage);
         WARMessage matchmakingMessage = connectionToServer.waitForAnswer();
         if (matchmakingMessage.getType() == 5) {
             Scanner sc = new Scanner(System.in);
@@ -43,18 +49,66 @@ public class WARGame {
     private void playTurn() {
         System.out.println("Cards: " + cards.toString());
         Scanner sc = new Scanner(System.in);
-        System.out.print("Select which card to play: ");
-        byte card = sc.nextByte();
-        while (!cards.contains(card)) {
-            System.out.print("Select a valid card: ");
-            card = sc.nextByte();
+        System.out.print("What would you like to do?"
+                + "\n1: Play card."
+                + "\n2: Start a new game."
+                + "\n3: Quit game."
+                + "\nChoice: ");
+        byte opt = sc.nextByte();
+
+        if (opt == 1) {
+            Random rand_ind = new Random();
+            Byte card = cards.get(rand_ind.nextInt(cards.size()));
+            /*
+            while (!cards.contains(card)) {
+                System.out.print("Select a valid card: ");
+                card = sc.nextByte();
+            }
+            */
+            cards.remove(card);
+
+            WARMessage playCardMessage = new WARMessage((byte) 2, new byte[]{card});
+            WARMessage playResultMessage = connectionToServer.sendForAnswer(playCardMessage);
+            handleWarMessage(playResultMessage);
+        } else if (opt == 2) {
+            connectionToServer.disconnect();
+            startNewGame();
+        } else if (opt == 3) {
+            this.cards.clear();
+            connectionToServer.disconnect();
+        } else {
+            System.out.println("Incorrect input!");
         }
+    }
 
-        cards.remove((Byte) card);
-
-        WARMessage playCardMessage = new WARMessage((byte) 2, new byte[]{card});
-        WARMessage playResultMessage = connectionToServer.sendForAnswer(playCardMessage);
-        System.out.println("Play result: " + playResultMessage.toString());
+    private void handleWarMessage (WARMessage warMessage) {
+        switch (warMessage.getType()) {
+            case 3:
+                if (warMessage.getPayload()[0] == 0) {
+                    System.out.println("You won this round");
+                } else if (warMessage.getPayload()[0] == 1) {
+                    System.out.println("This round is tied");
+                } else if (warMessage.getPayload()[0] == 2) {
+                    System.out.println("You lost this round");
+                } else {
+                    System.out.println("Invalid turn result message!");
+                }
+                return;
+            case 4:
+                if (warMessage.getPayload()[0] == 0) {
+                    System.out.println("You won the game");
+                } else if (warMessage.getPayload()[0] == 1) {
+                    System.out.println("The game is tied");
+                } else if (warMessage.getPayload()[0] == 2) {
+                    System.out.println("You lost the game");
+                } else {
+                    System.out.println("Invalid game result message!");
+                }
+                connectionToServer.disconnect();
+                return;
+            default:
+                System.out.println("Something is wrong");
+        }
     }
 
 }

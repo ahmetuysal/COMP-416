@@ -2,12 +2,8 @@ package connection;
 
 import domain.WARMessage;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -16,7 +12,6 @@ public class ConnectionToServer {
     protected ObjectInputStream objectInputStream;
     protected ObjectOutputStream objectOutputStream;
     private Socket socket;
-    private boolean socketClosedByServer;
 
     /**
      * @param address IP address of the server, if you are running the server on the same computer as client, put the address as "localhost"
@@ -35,9 +30,6 @@ public class ConnectionToServer {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             System.out.println("Successfully connected to " + serverAddress + " on port " + serverPort);
-        } catch (EOFException e) {
-            this.socketClosedByServer = true;
-            disconnect();
         } catch (IOException e) {
             System.err.println("Error: no server has been found on " + serverAddress + "/" + serverPort);
         }
@@ -67,27 +59,11 @@ public class ConnectionToServer {
             objectOutputStream.writeObject(message);
             objectOutputStream.flush();
             response = (WARMessage) objectInputStream.readObject();
-        } catch (EOFException | SocketException e) {
-            this.socketClosedByServer = true;
-            disconnect();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             System.out.println("Socket read Error");
         }
         return response;
-    }
-
-    public void send(WARMessage message) {
-        try {
-            System.out.println("Sending message: " + message.toString());
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
-        } catch (SocketException e) {
-            this.socketClosedByServer = true;
-            disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -98,16 +74,58 @@ public class ConnectionToServer {
             objectInputStream.close();
             objectOutputStream.close();
             socket.close();
-            socketClosedByServer = true;
             System.out.println("Connection Closed");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public boolean isConnectionActive() {
-        return !socketClosedByServer && this.socket.isConnected() && !this.socket.isClosed();
+    public void sendResult(String message) {
+        WARMessage response = null;
+        try {
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-}
+    public void send(WARMessage message) {
+        try {
+            System.out.println("Sending message: " + message.toString());
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public File receiveFile() {
+        File file = new File("Recieved.json");
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            FileInputStream fileInputStream = new FileInputStream(file);
+            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
+            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            String ch;
+
+            while (dataInputStream.available() > 0) {
+                System.out.println("of");
+                ch = dataInputStream.readUTF();
+                System.out.println("ch " + ch);
+                fileOutputStream.write(Integer.parseInt(ch));
+            }
+            fileOutputStream.close();
+            fileInputStream.close();
+            dataInputStream.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+
+}

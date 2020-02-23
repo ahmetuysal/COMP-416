@@ -1,4 +1,4 @@
-package contract;
+package domain;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -27,6 +27,12 @@ public class WARMessage implements Serializable {
                 return "game result";
             case 5:
                 return "matchmaking";
+            case 6:
+                return "correspondent connected";
+            case 7:
+                return "follower communication";
+            case 8:
+                return "ask hashcode";
             default:
                 return "invalid type";
         }

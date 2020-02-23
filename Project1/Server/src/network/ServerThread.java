@@ -1,12 +1,11 @@
 package network;
 
-import contract.WARMessage;
+import domain.WARMessage;
 import controller.ControllerThread;
-import domain.Player;
+import domain.Correspondent;
+import service.WARService;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -19,14 +18,12 @@ public class ServerThread extends Thread {
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     private Socket socket;
-    private Player player;
+    private Correspondent correspondent;
+    private boolean isThreadKilled = false;
 
-    /**
-     * @param socket Input socket to create a thread on
-     */
-    public ServerThread(Socket socket, Player player) {
+
+    public ServerThread(Socket socket) {
         this.socket = socket;
-        this.player = player;
         this.outgoingQueue = new LinkedBlockingQueue<>();
     }
 
@@ -34,8 +31,12 @@ public class ServerThread extends Thread {
         return this.socket.isConnected() && !this.socket.isClosed();
     }
 
-    public Player getPlayer() {
-        return player;
+    public Correspondent getCorrespondent() {
+        return correspondent;
+    }
+
+    public void setCorrespondent(Correspondent correspondent) {
+        this.correspondent = correspondent;
     }
 
     public void run() {
@@ -46,43 +47,35 @@ public class ServerThread extends Thread {
             e.printStackTrace();
         }
 
+        /*Scanner sc = new Scanner(System.in);
+        String exitMessage = sc.nextLine();
+        if(exitMessage.equalsIgnoreCase("Exit")){
+            File file = new File("WARGame.json");
+            if(file.exists())
+                file.delete();
+            System.exit(0);
+        }*/
+
         try {
             WARMessage warMessage;
-            while (true) {
+            while (!isThreadKilled) {
                 if (!this.outgoingQueue.isEmpty()) {
                     WARMessage outgoingMessage = this.outgoingQueue.poll();
                     this.sendWARMessage(outgoingMessage);
                 }
                 warMessage = (WARMessage) objectInputStream.readObject();
-                ControllerThread.getInstance().queueIncomingWARMessage(warMessage, this.player);
+                ControllerThread.getInstance().queueIncomingWARMessage(warMessage, this);
                 System.out.println("Client " + socket.getRemoteSocketAddress() + " sent : " + warMessage.toString());
             }
         } catch (IOException e) {
+            WARService.getInstance().handleTermination(this.correspondent);
             System.err.println("Server Thread. Run. IO Error/ Client " + this.getName() + " terminated abruptly");
         } catch (NullPointerException e) {
             System.err.println("Server Thread. Run.Client " + this.getName() + " Closed");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            try {
-                // TODO: client has left, terminate the game if it's not finished
-                System.out.println("Closing the connection");
-                if (objectInputStream != null) {
-                    objectInputStream.close();
-                    System.err.println("Socket Input Stream Closed");
-                }
-                if (objectOutputStream != null) {
-                    objectOutputStream.close();
-                    System.err.println("Socket Out Closed");
-                }
-                if (socket != null) {
-                    socket.close();
-                    System.err.println("Socket Closed");
-                }
-
-            } catch (IOException ie) {
-                System.err.println("Socket Close Error");
-            }
+            terminate();
         }
     }
 
@@ -94,6 +87,44 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendFile(File file) {
+        FileInputStream fis = null;
+        try {
+            byte[] mybytearray = new byte[(int) file.length() + 1];
+            fis = new FileInputStream(file);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            bis.read(mybytearray, 0, mybytearray.length);
+            objectOutputStream.write(mybytearray, 0, mybytearray.length);
+            objectOutputStream.flush();
+            bis.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void terminate() {
+        try {
+            System.out.println("Closing the connection");
+            if (objectInputStream != null) {
+                objectInputStream.close();
+                System.err.println("Socket Input Stream Closed");
+            }
+            if (objectOutputStream != null) {
+                objectOutputStream.close();
+                System.err.println("Socket Out Closed");
+            }
+            if (socket != null) {
+                socket.close();
+                System.err.println("Socket Closed");
+            }
+        } catch (IOException ie) {
+            System.err.println("Socket Close Error");
+        }
+        isThreadKilled = true;
     }
 
 }

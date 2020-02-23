@@ -94,21 +94,16 @@ public class WARGame {
     public Document generateWARDoc() {
         Document doc2gen = new Document()
                 .append("_id", this.gameID)
-                .append("player1", this.player1)
-                .append("player2", this.player2)
-                .append("created_on", this.createdOn)
-                .append("last_change", this.lastChangedOn)
-                .append("is_started", this.isGameStarted)
-                .append("rounds", this.numRounds);
+                .append("game", this);
         return doc2gen;
     }
 
     public void loadFromDoc(Document doc) {
-        this.gameID =  doc.getObjectId("_id");
+        this.gameID = doc.getObjectId("_id");
         this.createdOn = doc.getDate("created_on");
         this.lastChangedOn = doc.getDate("last_change");
-        this.player1 =  (Player) doc.get("player1");
-        this.player2 =  (Player) doc.get("player2");
+        this.player1 = (Player) doc.get("player1");
+        this.player2 = (Player) doc.get("player2");
         this.isGameStarted = doc.getBoolean("is_started");
         this.numRounds = doc.getInteger("rounds");
     }
@@ -120,4 +115,5 @@ public class WARGame {
     public void setNumRounds(int rounds) {
         this.numRounds = rounds;
     }
+
 }
