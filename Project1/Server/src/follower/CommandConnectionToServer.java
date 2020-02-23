@@ -1,12 +1,11 @@
 package follower;
 
 import domain.WARMessage;
+import util.Utilities;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * CommandConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
@@ -19,6 +18,7 @@ public class CommandConnectionToServer {
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private Socket socket;
+    private int ID = 0;
 
     /**
      * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
@@ -28,6 +28,10 @@ public class CommandConnectionToServer {
      */
     public CommandConnectionToServer(String address, int port) {
         connect(address, port);
+        while (new File("Follower-" + ID).exists()) {
+            ID++;
+        }
+        new File("Follower-" + ID).mkdir();
     }
 
     private void connect(String serverAddress, int serverPort) {
@@ -40,7 +44,6 @@ public class CommandConnectionToServer {
             System.err.println("Error: no server has been found on " + serverAddress + "/" + serverPort);
         }
     }
-
 
 
     /**
@@ -77,7 +80,7 @@ public class CommandConnectionToServer {
     public void receiveFile(String fileName) {
         int count;
         byte[] buffer = new byte[BUFFER_SIZE];
-        try (FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream("Follower-" + ID + "/" + fileName)) {
             while ((count = objectInputStream.read(buffer)) > 0) {
                 fileOutputStream.write(buffer, 0, count);
             }
@@ -85,6 +88,10 @@ public class CommandConnectionToServer {
             e.printStackTrace();
         }
 
+    }
+
+    public boolean compareChecksumWithFile(byte[] checksum, String fileName) {
+        return Arrays.equals(Utilities.calculateFileChecksum(new File("Follower-" + ID + "/" + fileName)), checksum);
     }
 
 

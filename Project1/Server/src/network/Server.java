@@ -73,9 +73,9 @@ public class Server {
         WARMessage receiveFileMessage = commandConnectionToServer.waitForAnswer();
         if (receiveFileMessage.getType() == 8) {
             String fileName = new String(receiveFileMessage.getPayload());
-            commandConnectionToServer.receiveFile("Follower1:" + fileName);
+            commandConnectionToServer.receiveFile(fileName);
             WARMessage fileHashMessage = commandConnectionToServer.waitForAnswer();
-            boolean checksumValidation = Arrays.equals(Utilities.calculateFileChecksum(new File("Follower1:" + fileName)),fileHashMessage.getPayload());
+            boolean checksumValidation = commandConnectionToServer.compareChecksumWithFile(fileHashMessage.getPayload(), fileName);
             System.out.println("Checksum validation: " + checksumValidation);
             if (checksumValidation)
                 commandConnectionToServer.sendWarMessage(new WARMessage((byte) 9, ("CONSISTENCY_CHECK_PASSED " + fileName).getBytes()));

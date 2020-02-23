@@ -68,7 +68,6 @@ public class ControllerThread extends Thread {
                                         System.out.println("Game with ID: " + warGame.getGameID().toString());
                                         warService.updateGame(warGame);
                                         Utilities.writeWARGameToJSON(warGame);
-                                        warGame.setLastChangedOn(currentTime);
                                         System.out.println("Synchronization of game with ID: " + warGame.getGameID().toString() + " is done with MongoDB");
                                     } else {
                                         System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
