@@ -1,9 +1,9 @@
 package controller;
 
 import contract.WARMessage;
-import domain.Player;
-import repository.WARRepository;
+import network.ServerThread;
 import service.WARService;
+import util.Utilities;
 
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,7 +15,7 @@ public class ControllerThread extends Thread {
 
     private static final ControllerThread _instance = new ControllerThread();
     private Date lastUpdatedOn;
-    private LinkedBlockingQueue<WARMessagePlayerPair> waitingMessages;
+    private LinkedBlockingQueue<WARMessageServerThreadPair> waitingMessages;
     private WARService warService;
 
     private ControllerThread() {
@@ -28,43 +28,57 @@ public class ControllerThread extends Thread {
         return _instance;
     }
 
-    public void queueIncomingWARMessage(WARMessage incomingMessage, Player source) {
-        waitingMessages.add(new WARMessagePlayerPair(incomingMessage, source));
+    public void queueIncomingWARMessage(WARMessage incomingMessage, ServerThread serverThread) {
+        waitingMessages.add(new WARMessageServerThreadPair(incomingMessage, serverThread));
     }
 
     public void run() {
         while (true) {
             if (!waitingMessages.isEmpty()) {
-                WARMessagePlayerPair messagePlayerPair = waitingMessages.poll();
-                handleWARMessage(messagePlayerPair.getWarMessage(), messagePlayerPair.getPlayer());
+                WARMessageServerThreadPair messageServerThreadPair = waitingMessages.poll();
+                handleWARMessage(messageServerThreadPair.getWarMessage(), messageServerThreadPair.getServerThread());
             }
             Date currentTime = new Date();
             if (currentTime.getTime() - lastUpdatedOn.getTime() >= 30000) {
                 warService.getOngoingGames().stream()
                         .forEach(
                                 warGame -> {
-                                if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
-                                    System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:");
-                                    System.out.println("Game with ID: " + warGame.getGameID().toString());
-                                    warService.updateGame(warGame);
-                                    // backup to the follower here as well?
-                                    warGame.setLastChangedOn(currentTime);
-                                } else {
-                                    System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
-                                }
-                        });
+                                    if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
+                                        System.out.println("Current time: " + currentTime.toString() + ", the following files are going to be synchronized:\n");
+                                        System.out.println("Game with ID: " + warGame.getGameID().toString()); 
+                                        warService.updateGame(warGame);
+                                        Utilities.writeWARGameToJSON(warGame);
+                                        warGame.setLastChangedOn(currentTime);
+                                        System.out.println("Syncronization of game with ID: " + warGame.getGameID().toString() + " is done with MongoDB");
+                                    } else {
+                                        System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
+                                    }
+                                });
                 lastUpdatedOn = currentTime;
+                warService.handleFollowerUpdate();
             }
         }
     }
 
-    private void handleWARMessage(WARMessage warMessage, Player player) {
+    private void handleWARMessage(WARMessage warMessage, ServerThread serverThread) {
         if (validateWarMessage(warMessage)) {
             // TODO: implement WARMessage handling
             if (warMessage.getType() == 0) {
-                warService.handleWantGameMessage(warMessage, player);
+                warService.handleWantGameMessage(warMessage, serverThread.getCorrespondent());
             } else if (warMessage.getType() == 2) {
-                warService.handlePlayCardMessage(warMessage, player);
+                warService.handlePlayCardMessage(warMessage, serverThread.getCorrespondent());
+            } else if (warMessage.getType() == 6) {
+                byte correspondentType = warMessage.getPayload()[0];
+                // player connected
+                if (correspondentType == (byte) 0) {
+                    warService.registerPlayer(serverThread);
+                }
+                // follower connected
+                else if (correspondentType == (byte) 1) {
+                    warService.registerFollower(serverThread);
+                }
+            } else if (warMessage.getType() == 8) {
+                warService.sendHashCodeToFollower(serverThread.getCorrespondent());
             }
         } else {
             // TODO: send error message
@@ -97,6 +111,15 @@ public class ControllerThread extends Thread {
             // matchmaking
             case 5:
                 return warMessage.getPayload() == null || warMessage.getPayload().length == 0;
+            // correspondent connected
+            case 6:
+                return warMessage.getPayload() != null && warMessage.getPayload().length == 1;
+            // follower communication
+            case 7:
+                return true;
+            // ask hashcode
+            case 8:
+                return true;
             // invalid WARMessage type
             default:
                 return false;
