@@ -1,5 +1,14 @@
 package util;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import domain.WARGame;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -38,6 +47,33 @@ public final class Utilities {
             byteList.add(value);
         }
         return byteList;
+    }
+
+    public static void writeWARGameToJSON(WARGame warGame) {
+        File file =new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
+        Gson jsonEncoder = new Gson();
+        String player1 = jsonEncoder.toJson(warGame.getPlayer1());
+        String player2 = jsonEncoder.toJson(warGame.getPlayer2());
+        try {
+            JsonWriter wr = new JsonWriter(new FileWriter(file));
+            wr.beginObject();
+            wr.name("Round Num").value(warGame.getNumRounds());
+            wr.name("Players");
+            wr.beginArray();
+            wr.value(player1);
+            wr.value(player2);
+            wr.endArray();
+            wr.endObject();
+            wr.flush();
+            wr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean deleteWarGameJSONFile(WARGame warGame) {
+        File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
+        return file.delete();
     }
 
 }

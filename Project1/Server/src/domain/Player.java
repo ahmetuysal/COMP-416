@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ikoprululu, Furkan Sahbaz @fsahbaz
  */
-public class Player {
+public class Player implements Correspondent {
     private String name;
     private List<Byte> cards;
     private int point;
