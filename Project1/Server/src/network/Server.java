@@ -1,17 +1,14 @@
 package network;
 
 import configuration.Configuration;
-import follower.CommandConnectionToServer;
 import domain.WARMessage;
+import follower.CommandConnectionToServer;
 import service.WARService;
-import util.Utilities;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -19,7 +16,6 @@ import java.util.Arrays;
 public class Server {
     private ServerSocket serverSocket;
     private WARService warService;
-    private WARMessage file = new WARMessage((byte) 0, new byte[]{0});
     private CommandConnectionToServer commandConnectionToServer;
 
     /**
@@ -81,7 +77,7 @@ public class Server {
                 commandConnectionToServer.sendWarMessage(new WARMessage((byte) 9, ("CONSISTENCY_CHECK_PASSED " + fileName).getBytes()));
             else
                 commandConnectionToServer.sendWarMessage(new WARMessage((byte) 9, ("RETRANSMIT " + fileName).getBytes()));
-           }
+        }
 
 
     }

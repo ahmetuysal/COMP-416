@@ -200,9 +200,9 @@ public class WARService {
             ongoingGames.stream()
                     .filter(game -> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
                     .forEach(warGame -> {
-                        // TODO: extract to method and send again if fails
-                        ServerThread followerThread = correspondentToServerThreadMap.get(follower);
-                        sendWARGameFileToFollower(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json", followerThread);
+                                // TODO: extract to method and send again if fails
+                                ServerThread followerThread = correspondentToServerThreadMap.get(follower);
+                                sendWARGameFileToFollower(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json", followerThread);
                             }
                     );
             follower.setLastUpdatedOn(new Date());
@@ -210,7 +210,7 @@ public class WARService {
 
     }
 
-    private void sendWARGameFileToFollower(String fileName, ServerThread followerThread){
+    private void sendWARGameFileToFollower(String fileName, ServerThread followerThread) {
         WARMessage fileNameMessage = new WARMessage((byte) 8, fileName.getBytes());
         followerThread.sendWARMessage(fileNameMessage);
         File warGameFile = new File(fileName);
@@ -222,15 +222,15 @@ public class WARService {
     }
 
 
-    public void fileTransferValidation(WARMessage validationMessage, ServerThread followerThread){
-        if(validationMessage.getType() == 9){
+    public void fileTransferValidation(WARMessage validationMessage, ServerThread followerThread) {
+        if (validationMessage.getType() == 9) {
             String message = new String(validationMessage.getPayload());
             int indexOfSpace = message.indexOf(" ");
 
-            if(message.startsWith("CONSISTENCY_CHECK_PASSED"))
+            if (message.startsWith("CONSISTENCY_CHECK_PASSED"))
                 return;
-            else if(message.startsWith("RETRANSMIT"))
-                sendWARGameFileToFollower(message.substring(indexOfSpace+1), followerThread);
+            else if (message.startsWith("RETRANSMIT"))
+                sendWARGameFileToFollower(message.substring(indexOfSpace + 1), followerThread);
         }
     }
 

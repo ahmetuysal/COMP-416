@@ -43,7 +43,6 @@ public class WARGame {
 
     /**
      * Initializes an empty WARGame to be later initialized with values loaded from a document.
-     *
      */
     public WARGame() {
 
@@ -52,7 +51,6 @@ public class WARGame {
     /**
      * Initializes the card decks of each player randomly from a deck of 52 cards.
      * The resulting decks are provided to each player as a ByteList to later transmit the card values as bytes.
-     *
      */
     private void initializeCards() {
         byte[] cardDeck = CARD_DECK.clone();
