@@ -30,6 +30,7 @@ public class MongoDBWARRepository implements WARRepository {
     private String collection;
     private MongoClient mongoClient;
     private MongoDatabase WARDatabase;
+
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -37,11 +38,6 @@ public class MongoDBWARRepository implements WARRepository {
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
                 .build();
-        try (InputStream inputStream = new FileInputStream("resources/configuration.properties")) {
-            Configuration.loadProperties(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         this.name = Configuration.getInstance().getProperty("mongodb.name");
         this.collection = Configuration.getInstance().getProperty("mongodb.collection");
