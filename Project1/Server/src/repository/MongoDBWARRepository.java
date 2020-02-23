@@ -43,7 +43,7 @@ public class MongoDBWARRepository implements WARRepository {
         this.name = Configuration.getInstance().getProperty("mongodb.name");
         this.hostName = Configuration.getInstance().getProperty("mongodb.host");
         this.port = Integer.parseInt(Configuration.getInstance().getProperty("mongodb.port"));
-        MongoClient mongoClient = MongoClients.create(
+        mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                         .applyToClusterSettings(builder ->
                                 builder.hosts(Collections.singletonList(new ServerAddress(hostName, port))))
