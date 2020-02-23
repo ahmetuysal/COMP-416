@@ -96,4 +96,16 @@ public final class Utilities {
         return messageDigest.digest();
     }
 
+    public static byte[] fileToByteArray(File file) {
+        byte[] byteArray = new byte[(int) file.length()];
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            fis.read(byteArray);
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return byteArray;
+    }
+
 }
