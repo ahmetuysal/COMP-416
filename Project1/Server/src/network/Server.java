@@ -1,9 +1,10 @@
 package network;
 
 import configuration.Configuration;
-import connection.ConnectionToServer;
+import follower.CommandConnectionToServer;
 import domain.WARMessage;
 import service.WARService;
+import util.Utilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +19,7 @@ public class Server {
     private ServerSocket serverSocket;
     private WARService warService;
     private WARMessage file = new WARMessage((byte) 0, new byte[]{0});
-    private ConnectionToServer connectionToServer;
+    private CommandConnectionToServer commandConnectionToServer;
 
     /**
      * Initiates a server socket on the input port, listens to the line, on receiving an incoming
@@ -39,11 +40,11 @@ public class Server {
             while (true)
                 listenAndAccept();
         } else if (serverType.equalsIgnoreCase("Follower")) {
-            connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"), port);
+            commandConnectionToServer = new CommandConnectionToServer(Configuration.getInstance().getProperty("server.address"), port);
             WARMessage iAmFollowerMessage = new WARMessage((byte) 6, new byte[]{1});
-            connectionToServer.sendWarMessage(iAmFollowerMessage);
-            /*while (true)
-                communicate();*/
+            commandConnectionToServer.sendWarMessage(iAmFollowerMessage);
+            while (true)
+                communicate();
         } else {
             throw new Exception("Not a server type");
         }
@@ -68,15 +69,23 @@ public class Server {
     }
 
     private void communicate() {
-        File receivedFile = connectionToServer.receiveFile();
-        if (receivedFile.length() != 0) {
-            byte hashCode = connectionToServer.sendForAnswer(new WARMessage((byte) 8, new byte[]{})).getPayload()[0];
-            System.out.println("hallo " + hashCode);
-            if (hashCode == (byte) receivedFile.hashCode())
-                connectionToServer.sendForAnswer(new WARMessage((byte) 7, "CONSISTENCY_CHECK_PASSED".getBytes()));
-            else
-                connectionToServer.sendForAnswer(new WARMessage((byte) 7, "RETRANSMIT".getBytes()));
+        WARMessage receiveFileMessage = commandConnectionToServer.waitForAnswer();
+        if (receiveFileMessage.getType() == 9) {
+            String fileName = new String(receiveFileMessage.getPayload());
+            commandConnectionToServer.receiveFile(fileName);
+            WARMessage fileHashMessage = commandConnectionToServer.waitForAnswer();
+            System.out.println("Checksum validation: " + Utilities.calculateFileChecksum(new File(fileName)).equals(fileHashMessage.getPayload()));
+
+//            if (receivedFile.length() != 0) {
+//                byte hashCode = commandConnectionToServer.sendForAnswer(new WARMessage((byte) 8, new byte[]{})).getPayload()[0];
+//                System.out.println("hallo " + hashCode);
+//                if (hashCode == (byte) receivedFile.hashCode())
+//                    commandConnectionToServer.sendForAnswer(new WARMessage((byte) 7, "CONSISTENCY_CHECK_PASSED".getBytes()));
+//                else
+//                    commandConnectionToServer.sendForAnswer(new WARMessage((byte) 7, "RETRANSMIT".getBytes()));
+//            }
         }
+
     }
 }
 

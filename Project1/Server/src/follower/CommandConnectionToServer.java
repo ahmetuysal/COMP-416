@@ -1,19 +1,23 @@
-package connection;
+package follower;
 
 import domain.WARMessage;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * ConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
+ * CommandConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
  * This class is only used in Follower mode to establish a connection with the Master server.
  *
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
-public class ConnectionToServer {
-    protected ObjectInputStream objectInputStream;
-    protected ObjectOutputStream objectOutputStream;
+public class CommandConnectionToServer {
+    private static final int BUFFER_SIZE = 4096;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
     private Socket socket;
 
     /**
@@ -22,7 +26,7 @@ public class ConnectionToServer {
      * @param address IP address of the master server
      * @param port    port number of the server
      */
-    public ConnectionToServer(String address, int port) {
+    public CommandConnectionToServer(String address, int port) {
         connect(address, port);
     }
 
@@ -58,6 +62,22 @@ public class ConnectionToServer {
 
 
     /**
+     * Retrieves the answer {@code WARMessage} object from master server
+     *
+     * @return the received {@code WARMessage} object
+     */
+    public WARMessage waitForAnswer() {
+        WARMessage response = null;
+        try {
+            response = (WARMessage) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("Socket read Error");
+        }
+        return response;
+    }
+
+    /**
      * Sends the {@code WARMessage} object to the server
      *
      * @param message {@code WARMessage} object that will be send to the server
@@ -72,37 +92,19 @@ public class ConnectionToServer {
         }
     }
 
-    /**
-     * Receives the {@code File} that contains information about a single game.
-     *
-     * @return the {@code File} sent by master server
-     */
-    public File receiveFile() {
-        File file = new File("Received.json");
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            FileInputStream fileInputStream = new FileInputStream(file);
-            DataInputStream dataInputStream = new DataInputStream(fileInputStream);
-            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-            String ch;
-
-            while (dataInputStream.available() > 0) {
-                System.out.println("of");
-                ch = dataInputStream.readUTF();
-                System.out.println("ch " + ch);
-                fileOutputStream.write(Integer.parseInt(ch));
+    public void receiveFile(String fileName) {
+        int count;
+        byte[] buffer = new byte[BUFFER_SIZE];
+        try (FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
+            while ((count = objectInputStream.read(buffer)) > 0) {
+                fileOutputStream.write(buffer, 0, count);
             }
-            fileOutputStream.close();
-            fileInputStream.close();
-            dataInputStream.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return file;
+
     }
+
 
     /**
      * Disconnects the socket and closes the object input and output streams

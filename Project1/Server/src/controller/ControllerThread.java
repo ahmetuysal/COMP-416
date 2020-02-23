@@ -101,8 +101,6 @@ public class ControllerThread extends Thread {
             else if (correspondentType == (byte) 1) {
                 warService.registerFollower(serverThread);
             }
-        } else if (warMessage.getType() == 8) {
-            warService.sendHashCodeToFollower(serverThread.getCorrespondent());
         }
     }
 
@@ -140,6 +138,9 @@ public class ControllerThread extends Thread {
             // ask hashcode
             case 8:
                 return true;
+            // receive file
+            case 9:
+                return warMessage.getPayload() != null && warMessage.getPayload().length > 0;
             // invalid WARMessage type
             default:
                 return false;

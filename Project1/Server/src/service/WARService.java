@@ -1,15 +1,12 @@
 package service;
 
-import domain.WARMessage;
-import domain.Correspondent;
-import domain.Follower;
-import domain.Player;
-import domain.WARGame;
+import domain.*;
 import network.ServerThread;
 import repository.MongoDBWARRepository;
 import repository.WARRepository;
 import util.Utilities;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -197,36 +194,30 @@ public class WARService {
 
     }
 
-    public void sendHashCodeToFollower(Correspondent correspondent) {
-//        file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
-//        ServerThread followerThread = correspondentToServerThreadMap.get((Follower) correspondent);
-//        followerThread.sendWARMessage(new WARMessage((byte) 7, new byte[]{ (byte) file.hashCode()}));
+    public void sendHashCodeToFollower(ServerThread followerThread, File warGameFile) {
+        byte[] fileHash = Utilities.calculateFileChecksum(warGameFile);
+        followerThread.sendWARMessage(new WARMessage((byte) 7, fileHash));
     }
 
     public void handleFollowerUpdate() {
-        followers.forEach(follower -> {
+        followers.parallelStream().forEach(follower -> {
             Date followerLastUpdateTime = follower.getLastUpdatedOn();
             ongoingGames.stream()
                     .filter(game -> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
                     .forEach(warGame -> {
-
+                        // TODO: extract to method and send again if fails
+                                String fileName = warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json";
+                                ServerThread followerThread = correspondentToServerThreadMap.get(follower);
+                                WARMessage fileNameMessage = new WARMessage((byte) 9, fileName.getBytes());
+                                followerThread.sendWARMessage(fileNameMessage);
+                                File warGameFile = Utilities.getWarGameJSONFile(warGame);
+                                followerThread.sendFile(warGameFile);
+                                sendHashCodeToFollower(followerThread, warGameFile);
                             }
                     );
+            follower.setLastUpdatedOn(new Date());
         });
 
-//        for(int i=0; i < followers.size(); i++){
-//            WARGame game = followerToGameMap.get(followers.get(i));
-//            if(game != null && game.getPlayer1() != null && game.getPlayer1() != null){
-//                file =new File(game.getPlayer1().getName() + "-" + game.getPlayer2().getName() + ".json");
-//                if(!followers.get(i).isUpdated() && file.length() != 0){
-//                    System.out.println("JSON file transmit " + followers.get(i));
-//                    ServerThread followerThread = correspondentToServerThreadMap.get(followers.get(i));
-//                    //followerThread.sendFile(file);
-//                    //sendHashCodeToFollower(followerThread, file);
-//                    followers.get(i).setUpdated(true);
-//                }
-//            }
-//        }
     }
 
     public List<WARGame> getOngoingGames() {

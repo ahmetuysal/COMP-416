@@ -35,7 +35,7 @@ public class WARMessage implements Serializable {
             case 7:
                 return "follower communication";
             case 8:
-                return "ask hashcode";
+                return "receive file with name";
             default:
                 return "invalid type";
         }

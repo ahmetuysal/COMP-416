@@ -14,6 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ServerThread extends Thread {
 
+    private static final int BUFFER_SIZE = 4096;
     private LinkedBlockingQueue<WARMessage> outgoingQueue;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
@@ -90,17 +91,15 @@ public class ServerThread extends Thread {
     }
 
     public void sendFile(File file) {
-        FileInputStream fis = null;
+        InputStream in = null;
         try {
-            byte[] mybytearray = new byte[(int) file.length() + 1];
-            fis = new FileInputStream(file);
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            bis.read(mybytearray, 0, mybytearray.length);
-            objectOutputStream.write(mybytearray, 0, mybytearray.length);
-            objectOutputStream.flush();
-            bis.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            in = new FileInputStream(file);
+            OutputStream out = objectOutputStream;
+            byte[] bytes = new byte[BUFFER_SIZE];
+            int count;
+            while ((count = in.read(bytes)) > 0) {
+                out.write(bytes, 0, count);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
