@@ -43,16 +43,15 @@ public class ControllerThread extends Thread {
                 warService.getOngoingGames().stream()
                         .forEach(
                                 warGame -> {
-                                if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
-                                    System.out.println("Current time: " + currentTime.toString() +  ", the following files are going to be synchronized:\n");
-                                    warService.updateGame(warGame);
-                                    // backup to the file
-                                    Utilities.writeWARGameToJSON(warGame);
-                                    warGame.setLastChangedOn(currentTime);
-                                } else {
-                                    System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
-                                }
-                        });
+                                    if (warGame.getLastChangedOn().getTime() > lastUpdatedOn.getTime()) {
+                                        System.out.println("Current time: " + currentTime.toString() + ", the following files are going to be synchronized:\n");
+                                        warService.updateGame(warGame);
+                                        Utilities.writeWARGameToJSON(warGame);
+                                        warGame.setLastChangedOn(currentTime);
+                                    } else {
+                                        System.out.println("“Current time: " + currentTime.toString() + ", no update is needed. Already synced!”");
+                                    }
+                                });
                 lastUpdatedOn = currentTime;
                 warService.handleFollowerUpdate();
             }
@@ -78,7 +77,7 @@ public class ControllerThread extends Thread {
                 }
             } else if (warMessage.getType() == 8) {
                 warService.sendHashCodeToFollower(serverThread.getCorrespondent());
-            } 
+            }
         } else {
             // TODO: send error message
         }
@@ -119,11 +118,7 @@ public class ControllerThread extends Thread {
             // ask hashcode
             case 8:
                 return true;
-            case 9:
-                return true;
-            case 10:
-                return true;
-                // invalid WARMessage type
+            // invalid WARMessage type
             default:
                 return false;
         }
@@ -136,10 +131,6 @@ public class ControllerThread extends Thread {
             }
         }
         return true;
-    }
-
-    private void handleFollowerUpdate(){
-        warService.handleFollowerUpdate();
     }
 
 }

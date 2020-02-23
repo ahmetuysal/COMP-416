@@ -3,12 +3,10 @@ package network;
 import contract.WARMessage;
 import controller.ControllerThread;
 import domain.Correspondent;
-import domain.Player;
 import service.WARService;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -21,6 +19,7 @@ public class ServerThread extends Thread {
     private ObjectInputStream objectInputStream;
     private Socket socket;
     private Correspondent correspondent;
+    private boolean isThreadKilled = false;
 
 
     public ServerThread(Socket socket) {
@@ -59,7 +58,7 @@ public class ServerThread extends Thread {
 
         try {
             WARMessage warMessage;
-            while (true) {
+            while (!isThreadKilled) {
                 if (!this.outgoingQueue.isEmpty()) {
                     WARMessage outgoingMessage = this.outgoingQueue.poll();
                     this.sendWARMessage(outgoingMessage);
@@ -125,6 +124,7 @@ public class ServerThread extends Thread {
        } catch (IOException ie) {
            System.err.println("Socket Close Error");
        }
+       isThreadKilled = true;
    }
 
 }

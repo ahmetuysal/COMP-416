@@ -135,7 +135,7 @@ public class WARService {
             game.setNumRounds(game.getNumRounds() + 1);
             System.out.println("Rounds played: " + game.getNumRounds());
 
-            // TODO: check whether game has ended
+            // Check whether game has ended
             if (player.getCards().isEmpty()) {
                 WARMessage playerGameResultMessage;
                 WARMessage opponentGameResultMessage;
@@ -153,7 +153,7 @@ public class WARService {
                 }
                 playerThread.sendWARMessage(playerGameResultMessage);
                 opponentThread.sendWARMessage(opponentGameResultMessage);
-                // TODO: delete JSON file
+                terminateGame(game);
             }
 
         } else {
@@ -193,6 +193,16 @@ public class WARService {
             // TODO: handle follower termination
         } else if (correspondent instanceof  Player) {
             // TODO: handle player termination
+            Player player = (Player) correspondent;
+            if (!playerToGameMap.containsKey(player)) {
+                return;
+            }
+            WARGame terminatedGame = playerToGameMap.get(player);
+            Player opponent = terminatedGame.getOtherPlayer(player);
+            WARMessage opponentGameResultMessage = new WARMessage((byte) 4, new byte[]{0});
+            ServerThread opponentThread = correspondentToServerThreadMap.get(opponent);
+            opponentThread.sendWARMessage(opponentGameResultMessage);
+            terminateGame(terminatedGame);
         }
 
     }
@@ -235,6 +245,19 @@ public class WARService {
 
     public void updateGame(WARGame game){
         warRepository.updateGame(game);
+    }
+
+    private void terminateGame(WARGame game) {
+        Player player1 = game.getPlayer1();
+        Player player2 = game.getPlayer2();
+        playerToGameMap.remove(player1);
+        playerToGameMap.remove(player2);
+        ongoingGames.remove(game);
+        Utilities.deleteWarGameJSONFile(game);
+        ServerThread player1Thread = correspondentToServerThreadMap.remove(player1);
+        ServerThread player2Thread = correspondentToServerThreadMap.remove(player2);
+        player1Thread.terminate();
+        player2Thread.terminate();
     }
 
 }

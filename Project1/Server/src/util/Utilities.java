@@ -71,4 +71,9 @@ public final class Utilities {
         }
     }
 
+    public static boolean deleteWarGameJSONFile(WARGame warGame) {
+        File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
+        return file.delete();
+    }
+
 }
