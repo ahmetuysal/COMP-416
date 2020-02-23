@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
+ * ConnectionToServer class is responsible from message transmission between Client and Master Server
+ *
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class ConnectionToServer {
@@ -19,6 +21,8 @@ public class ConnectionToServer {
     private boolean socketClosedByServer;
 
     /**
+     * Establishes a socket connection to the server that is identified by the {@code address} and the {@code port}
+     *
      * @param address IP address of the server, if you are running the server on the same computer as client, put the address as "localhost"
      * @param port    port number of the server
      */
@@ -26,9 +30,6 @@ public class ConnectionToServer {
         connect(address, port);
     }
 
-    /**
-     * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
-     */
     private void connect(String serverAddress, int serverPort) {
         try {
             socket = new Socket(serverAddress, serverPort);
@@ -44,7 +45,11 @@ public class ConnectionToServer {
         }
     }
 
-
+    /**
+     * Retrieves a {@code WARMessage} object from the server
+     *
+     * @return {@code WARMessage} that server sent
+     */
     public WARMessage waitForAnswer() {
         WARMessage response = null;
         try {
@@ -57,10 +62,10 @@ public class ConnectionToServer {
 
 
     /**
-     * sends the message String to the server and retrieves the answer
+     * Sends a {@code WARMessage} object to the server and retrieves the answer {@code WARMessage}
      *
-     * @param message input message string to the server
-     * @return the received server answer
+     * @param message {@code WARMessage} object that will be sent to server
+     * @return {@code WARMessage} that server sent
      */
     public WARMessage sendForAnswer(WARMessage message) {
         WARMessage response = null;
@@ -78,6 +83,9 @@ public class ConnectionToServer {
         return response;
     }
 
+    /**
+     * Sends a {@code WARMessage} object to the server, does not wait for the answer
+     */
     public void send(WARMessage message) {
         try {
             System.out.println("Sending message: " + message.toString());
@@ -116,6 +124,10 @@ public class ConnectionToServer {
         }
     }
 
+    /**
+     * Returns whether the connection with the server is active
+     * @return {@code true} if connection is still active, {@code false} otherwise
+     */
     public boolean isConnectionActive() {
         return !socketClosedByServer && this.socket != null && this.socket.isConnected() && !this.socket.isClosed();
     }
