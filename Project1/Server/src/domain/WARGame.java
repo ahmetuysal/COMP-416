@@ -24,6 +24,12 @@ public class WARGame {
     private ObjectId gameID;
     private int numRounds;
 
+    /**
+     * Initializes a WARGame from scratch with given player parameters.
+     *
+     * @param player1 The first player of the game.
+     * @param player2 The second player of the game.
+     */
     public WARGame(Player player1, Player player2) {
         this.createdOn = new Date();
         this.lastChangedOn = new Date();
@@ -35,10 +41,19 @@ public class WARGame {
         this.numRounds = 0;
     }
 
+    /**
+     * Initializes an empty WARGame to be later initialized with values loaded from a document.
+     *
+     */
     public WARGame() {
 
     }
 
+    /**
+     * Initializes the card decks of each player randomly from a deck of 52 cards.
+     * The resulting decks are provided to each player as a ByteList to later transmit the card values as bytes.
+     *
+     */
     private void initializeCards() {
         byte[] cardDeck = CARD_DECK.clone();
         Utilities.shuffleByteArray(cardDeck);
@@ -48,26 +63,57 @@ public class WARGame {
         this.player2.setCards(Utilities.byteArrayToByteList(player2Deck));
     }
 
+    /**
+     * Provides the creation time of the game
+     *
+     * @return createdOn field of the game, indicating the creation time.
+     */
     public Date getCreatedOn() {
         return createdOn;
     }
 
+    /**
+     * Returns the last modification time of the game.
+     *
+     * @return
+     */
     public Date getLastChangedOn() {
         return lastChangedOn;
     }
 
+    /**
+     * Sets the last modification time of the game.
+     *
+     * @param lastChangedOn The value to set the lastChangedOn field to.
+     */
     public void setLastChangedOn(Date lastChangedOn) {
         this.lastChangedOn = lastChangedOn;
     }
 
+    /**
+     * Returns the first player of the game.
+     *
+     * @return player1 of the game.
+     */
     public Player getPlayer1() {
         return player1;
     }
 
+    /**
+     * Returns the second player in the game.
+     *
+     * @return player2 of the game.
+     */
     public Player getPlayer2() {
         return player2;
     }
 
+    /**
+     * Returns the opponent player in the game that corresponds to the given player.
+     *
+     * @param player The given player, the opponent of which is to be obtained.
+     * @return the opponent of the given player.
+     */
     public Player getOtherPlayer(Player player) {
         if (player1.equals(player)) {
             return player2;
@@ -78,19 +124,40 @@ public class WARGame {
         }
     }
 
+    /**
+     * Returns the started/ended state of the game.
+     *
+     * @return isGameStarted field that indicates whether the game has started or not.
+     */
     public boolean isGameStarted() {
         return isGameStarted;
     }
 
+    /**
+     * Sets the gameStarted field to the given value (true/false).
+     * Also initiates the lastChangedOn field, since starting or ending a game is a state change.
+     *
+     * @param gameStarted field to set the game state.
+     */
     public void setGameStarted(boolean gameStarted) {
         isGameStarted = gameStarted;
         lastChangedOn = new Date();
     }
 
+    /**
+     * Returns the object ID of the game.
+     *
+     * @return the object ID of the game.
+     */
     public ObjectId getGameID() {
         return this.gameID;
     }
 
+    /**
+     * Generates a document to be inserted into the database by appending the game ID, and the game object data directly.
+     *
+     * @return the document generated to insert into the database.
+     */
     public Document generateWARDoc() {
         Document doc2gen = new Document()
                 .append("_id", this.gameID)
@@ -98,6 +165,12 @@ public class WARGame {
         return doc2gen;
     }
 
+    /**
+     * Loads the necessary game data that is obtained from the document given.
+     * The game ID and game object are necessarily assigned to corresponding fields.
+     *
+     * @param doc Document to load data from.
+     */
     public void loadFromDoc(Document doc) {
         this.gameID = doc.getObjectId("_id");
         this.createdOn = doc.getDate("created_on");
@@ -108,10 +181,20 @@ public class WARGame {
         this.numRounds = doc.getInteger("rounds");
     }
 
+    /**
+     * Returns the number of rounds played.
+     *
+     * @return the number of rounds played in the game.
+     */
     public int getNumRounds() {
         return numRounds;
     }
 
+    /**
+     * Sets the number of rounds played to the given value.
+     *
+     * @param rounds The value to set the number of rounds played to.
+     */
     public void setNumRounds(int rounds) {
         this.numRounds = rounds;
     }
