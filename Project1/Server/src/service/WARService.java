@@ -52,6 +52,7 @@ public class WARService {
     private void initializeGame(Player player1, Player player2) {
         newGame = new WARGame(player1, player2);
         ongoingGames.add(newGame);
+        warRepository.insertGame(newGame);
         playerToGameMap.put(player1, newGame);
         playerToGameMap.put(player2, newGame);
     }
@@ -258,6 +259,7 @@ public class WARService {
         ServerThread player2Thread = correspondentToServerThreadMap.remove(player2);
         player1Thread.terminate();
         player2Thread.terminate();
+        warRepository.deleteGame(game);
     }
 
 }

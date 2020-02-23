@@ -9,5 +9,5 @@ public interface WARRepository {
     void insertGame(WARGame gameData);
     void retrieveGame(String objID);
     void updateGame(WARGame gameData);
-    void deleteGame(String objID);
+    void deleteGame(WARGame gameData);
 }
