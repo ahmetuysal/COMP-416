@@ -22,6 +22,7 @@ public class CommandConnectionToServer {
 
     /**
      * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
+     * Defines the ID number of the current follower
      *
      * @param address IP address of the master server
      * @param port    port number of the server
@@ -34,6 +35,12 @@ public class CommandConnectionToServer {
         new File("Follower-" + ID).mkdir();
     }
 
+    /**
+     * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
+     *
+     * @param serverAddress IP address of the master server
+     * @param serverPort port number of the server
+     */
     private void connect(String serverAddress, int serverPort) {
         try {
             socket = new Socket(serverAddress, serverPort);
@@ -77,6 +84,12 @@ public class CommandConnectionToServer {
         }
     }
 
+    /**
+     *
+     * Takes a fileName, opens the file and writes the content that server has sent into the file.
+     *
+     * @param fileName File name value to write into.
+     */
     public void receiveFile(String fileName) {
         int count;
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -90,6 +103,12 @@ public class CommandConnectionToServer {
 
     }
 
+    /**
+     *
+     * @param checksum A checksum value
+     * @param fileName Name of a file to calculate and compare the checksum
+     * @return true if the checksum is equal to the calculated checksum of the file with the name fileName, else false
+     */
     public boolean compareChecksumWithFile(byte[] checksum, String fileName) {
         return Arrays.equals(Utilities.calculateFileChecksum(new File("Follower-" + ID + "/" + fileName)), checksum);
     }

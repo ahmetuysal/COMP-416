@@ -57,6 +57,7 @@ public class WARMessage implements Serializable {
         }
     }
 
+
     /**
      * Returns the {@code type} of this {@code WARMessage} object
      *

@@ -20,7 +20,11 @@ public final class Utilities {
     private Utilities() {
     }
 
-    // Implementing Fisher–Yates shuffle
+    /**
+     * Implements Fisher–Yates algorithm to shuffle randomly.
+     *
+     * @param byteArray Byte array to shuffle.
+     */
     public static void shuffleByteArray(byte[] byteArray) {
         Random rnd = ThreadLocalRandom.current();
         for (int i = byteArray.length - 1; i > 0; i--) {
@@ -31,6 +35,13 @@ public final class Utilities {
         }
     }
 
+    /**
+     *
+     * Takes a byte list as input and converts to a byte array.
+     *
+     * @param byteList Byte list to convert byte array.
+     * @return byteArray, a byte array.
+     */
     public static byte[] byteListToByteArray(List<Byte> byteList) {
         byte[] byteArray = new byte[byteList.size()];
         for (int i = 0; i < byteList.size(); i++) {
@@ -39,6 +50,12 @@ public final class Utilities {
         return byteArray;
     }
 
+    /**
+     * Takes a byte array as input and converts to a byte list.
+     *
+     * @param byteArray Byte array to convert byte list.
+     * @return byteList, a byte list.
+     */
     public static List<Byte> byteArrayToByteList(byte[] byteArray) {
         List<Byte> byteList = new ArrayList<>();
         for (Byte value : byteArray) {
@@ -47,6 +64,13 @@ public final class Utilities {
         return byteList;
     }
 
+
+    /**
+     *
+     * Takes a war game object as input and writes the datas into a json file.
+     *
+     * @param warGame The ongoing game.
+     */
     public static void writeWARGameToJSON(WARGame warGame) {
         File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
         Gson jsonEncoder = new Gson();
@@ -69,15 +93,23 @@ public final class Utilities {
         }
     }
 
+    /**
+     *
+     * Deletes the json file of the game
+     *
+     * @param warGame The ongoing game.
+     * @return true if file is deleted successfully, false if file could not be deleted.
+     */
     public static boolean deleteWarGameJSONFile(WARGame warGame) {
         File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
         return file.delete();
     }
 
-    public static File getWarGameJSONFile(WARGame warGame) {
-        return new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
-    }
-
+    /**
+     * Calculates the MD5 checksum value of the content of the given file.
+     * @param file A file that keeps the content of a game.
+     * @return byte array that keeps the checksum of the file.
+     */
     public static byte[] calculateFileChecksum(File file) {
         MessageDigest messageDigest = null;
         try {
@@ -98,18 +130,6 @@ public final class Utilities {
         }
         assert messageDigest != null;
         return messageDigest.digest();
-    }
-
-    public static byte[] fileToByteArray(File file) {
-        byte[] byteArray = new byte[(int) file.length()];
-        try {
-            FileInputStream fis = new FileInputStream(file);
-            fis.read(byteArray);
-            fis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return byteArray;
     }
 
 }
