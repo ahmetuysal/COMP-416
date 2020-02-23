@@ -194,11 +194,6 @@ public class WARService {
 
     }
 
-    public void sendHashCodeToFollower(ServerThread followerThread, File warGameFile) {
-        byte[] fileHash = Utilities.calculateFileChecksum(warGameFile);
-        followerThread.sendWARMessage(new WARMessage((byte) 7, fileHash));
-    }
-
     public void handleFollowerUpdate() {
         followers.parallelStream().forEach(follower -> {
             Date followerLastUpdateTime = follower.getLastUpdatedOn();
@@ -206,18 +201,37 @@ public class WARService {
                     .filter(game -> game.getLastChangedOn().compareTo(followerLastUpdateTime) > 0)
                     .forEach(warGame -> {
                         // TODO: extract to method and send again if fails
-                                String fileName = warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json";
-                                ServerThread followerThread = correspondentToServerThreadMap.get(follower);
-                                WARMessage fileNameMessage = new WARMessage((byte) 9, fileName.getBytes());
-                                followerThread.sendWARMessage(fileNameMessage);
-                                File warGameFile = Utilities.getWarGameJSONFile(warGame);
-                                followerThread.sendFile(warGameFile);
-                                sendHashCodeToFollower(followerThread, warGameFile);
+                        ServerThread followerThread = correspondentToServerThreadMap.get(follower);
+                        sendWARGameFileToFollower(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json", followerThread);
                             }
                     );
             follower.setLastUpdatedOn(new Date());
         });
 
+    }
+
+    private void sendWARGameFileToFollower(String fileName, ServerThread followerThread){
+        WARMessage fileNameMessage = new WARMessage((byte) 8, fileName.getBytes());
+        followerThread.sendWARMessage(fileNameMessage);
+        File warGameFile = new File(fileName);
+        followerThread.sendFile(warGameFile);
+
+        byte[] fileHash = Utilities.calculateFileChecksum(warGameFile);
+        followerThread.sendWARMessage(new WARMessage((byte) 7, fileHash));
+
+    }
+
+
+    public void fileTransferValidation(WARMessage validationMessage, ServerThread followerThread){
+        if(validationMessage.getType() == 9){
+            String message = new String(validationMessage.getPayload());
+            int indexOfSpace = message.indexOf(" ");
+
+            if(message.startsWith("CONSISTENCY_CHECK_PASSED"))
+                return;
+            else if(message.startsWith("RETRANSMIT"))
+                sendWARGameFileToFollower(message.substring(indexOfSpace+1), followerThread);
+        }
     }
 
     public List<WARGame> getOngoingGames() {

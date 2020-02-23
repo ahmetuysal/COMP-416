@@ -41,24 +41,6 @@ public class CommandConnectionToServer {
         }
     }
 
-    /**
-     * Sends the {@code WARMessage} object to the server and retrieves the answer {@code WARMessage} object
-     *
-     * @param message {@code WARMessage} object that will be send to the server
-     * @return the received {@code WARMessage} object
-     */
-    public WARMessage sendForAnswer(WARMessage message) {
-        WARMessage response = null;
-        try {
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
-            response = (WARMessage) objectInputStream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("Socket read Error");
-        }
-        return response;
-    }
 
 
     /**

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -70,21 +71,18 @@ public class Server {
 
     private void communicate() {
         WARMessage receiveFileMessage = commandConnectionToServer.waitForAnswer();
-        if (receiveFileMessage.getType() == 9) {
+        if (receiveFileMessage.getType() == 8) {
             String fileName = new String(receiveFileMessage.getPayload());
-            commandConnectionToServer.receiveFile(fileName);
+            commandConnectionToServer.receiveFile("Follower1:" + fileName);
             WARMessage fileHashMessage = commandConnectionToServer.waitForAnswer();
-            System.out.println("Checksum validation: " + Utilities.calculateFileChecksum(new File(fileName)).equals(fileHashMessage.getPayload()));
+            boolean checksumValidation = Arrays.equals(Utilities.calculateFileChecksum(new File("Follower1:" + fileName)),fileHashMessage.getPayload());
+            System.out.println("Checksum validation: " + checksumValidation);
+            if (checksumValidation)
+                commandConnectionToServer.sendWarMessage(new WARMessage((byte) 9, ("CONSISTENCY_CHECK_PASSED " + fileName).getBytes()));
+            else
+                commandConnectionToServer.sendWarMessage(new WARMessage((byte) 9, ("RETRANSMIT " + fileName).getBytes()));
+           }
 
-//            if (receivedFile.length() != 0) {
-//                byte hashCode = commandConnectionToServer.sendForAnswer(new WARMessage((byte) 8, new byte[]{})).getPayload()[0];
-//                System.out.println("hallo " + hashCode);
-//                if (hashCode == (byte) receivedFile.hashCode())
-//                    commandConnectionToServer.sendForAnswer(new WARMessage((byte) 7, "CONSISTENCY_CHECK_PASSED".getBytes()));
-//                else
-//                    commandConnectionToServer.sendForAnswer(new WARMessage((byte) 7, "RETRANSMIT".getBytes()));
-//            }
-        }
 
     }
 }

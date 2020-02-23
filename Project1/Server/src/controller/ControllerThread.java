@@ -101,6 +101,8 @@ public class ControllerThread extends Thread {
             else if (correspondentType == (byte) 1) {
                 warService.registerFollower(serverThread);
             }
+        } else if (warMessage.getType() == 9) {
+            warService.fileTransferValidation(warMessage, serverThread);
         }
     }
 
@@ -132,13 +134,13 @@ public class ControllerThread extends Thread {
             // correspondent connected
             case 6:
                 return warMessage.getPayload() != null && warMessage.getPayload().length == 1;
-            // follower communication
+            // file hash
             case 7:
                 return true;
-            // ask hashcode
+            // receive file with name
             case 8:
                 return true;
-            // receive file
+            // file transmit validation
             case 9:
                 return warMessage.getPayload() != null && warMessage.getPayload().length > 0;
             // invalid WARMessage type

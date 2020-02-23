@@ -48,15 +48,6 @@ public class ServerThread extends Thread {
             e.printStackTrace();
         }
 
-        /*Scanner sc = new Scanner(System.in);
-        String exitMessage = sc.nextLine();
-        if(exitMessage.equalsIgnoreCase("Exit")){
-            File file = new File("WARGame.json");
-            if(file.exists())
-                file.delete();
-            System.exit(0);
-        }*/
-
         try {
             WARMessage warMessage;
             while (!isThreadKilled) {
@@ -103,6 +94,19 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public WARMessage sendForAnswer(WARMessage message) {
+        WARMessage response = null;
+        try {
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+            response = (WARMessage) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("Socket read Error");
+        }
+        return response;
     }
 
     public void terminate() {
