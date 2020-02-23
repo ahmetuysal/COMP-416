@@ -14,10 +14,8 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -37,7 +35,6 @@ public class MongoDBWARRepository implements WARRepository {
 
     /**
      * Initializes the MongoDBRepository, that uses MongoDB API to store the game data and perform regular updates.
-     *
      */
     private MongoDBWARRepository() {
         // by default, this will connect to localhost:27017
@@ -49,7 +46,7 @@ public class MongoDBWARRepository implements WARRepository {
         MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                         .applyToClusterSettings(builder ->
-                                builder.hosts(Arrays.asList(new ServerAddress(hostName, port))))
+                                builder.hosts(Collections.singletonList(new ServerAddress(hostName, port))))
                         .codecRegistry(pojoCodecRegistry)
                         .build());
         WARDatabase = mongoClient.getDatabase(name);
