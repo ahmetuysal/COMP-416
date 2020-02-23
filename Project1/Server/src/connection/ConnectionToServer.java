@@ -6,6 +6,9 @@ import java.io.*;
 import java.net.Socket;
 
 /**
+ * ConnectionToServer class is responsible from message transmission between Master Server and Follower Server entities.
+ * This class is only used in Follower mode to establish a connection with the Master server.
+ *
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class ConnectionToServer {
@@ -14,16 +17,15 @@ public class ConnectionToServer {
     private Socket socket;
 
     /**
-     * @param address IP address of the server, if you are running the server on the same computer as client, put the address as "localhost"
+     * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
+     *
+     * @param address IP address of the master server
      * @param port    port number of the server
      */
     public ConnectionToServer(String address, int port) {
         connect(address, port);
     }
 
-    /**
-     * Establishes a socket connection to the server that is identified by the serverAddress and the serverPort
-     */
     private void connect(String serverAddress, int serverPort) {
         try {
             socket = new Socket(serverAddress, serverPort);
@@ -35,23 +37,11 @@ public class ConnectionToServer {
         }
     }
 
-
-    public WARMessage waitForAnswer() {
-        WARMessage response = null;
-        try {
-            response = (WARMessage) objectInputStream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
-
-
     /**
-     * sends the message String to the server and retrieves the answer
+     * Sends the {@code WARMessage} object to the server and retrieves the answer {@code WARMessage} object
      *
-     * @param message input message string to the server
-     * @return the received server answer
+     * @param message {@code WARMessage} object that will be send to the server
+     * @return the received {@code WARMessage} object
      */
     public WARMessage sendForAnswer(WARMessage message) {
         WARMessage response = null;
@@ -66,31 +56,13 @@ public class ConnectionToServer {
         return response;
     }
 
+
     /**
-     * Disconnects the socket and closes the buffers
+     * Sends the {@code WARMessage} object to the server
+     *
+     * @param message {@code WARMessage} object that will be send to the server
      */
-    public void disconnect() {
-        try {
-            objectInputStream.close();
-            objectOutputStream.close();
-            socket.close();
-            System.out.println("Connection Closed");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendResult(String message) {
-        WARMessage response = null;
-        try {
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void send(WARMessage message) {
+    public void sendWarMessage(WARMessage message) {
         try {
             System.out.println("Sending message: " + message.toString());
             objectOutputStream.writeObject(message);
@@ -100,8 +72,13 @@ public class ConnectionToServer {
         }
     }
 
+    /**
+     * Receives the {@code File} that contains information about a single game.
+     *
+     * @return the {@code File} sent by master server
+     */
     public File receiveFile() {
-        File file = new File("Recieved.json");
+        File file = new File("Received.json");
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             FileInputStream fileInputStream = new FileInputStream(file);
@@ -127,5 +104,18 @@ public class ConnectionToServer {
         return file;
     }
 
+    /**
+     * Disconnects the socket and closes the object input and output streams
+     */
+    public void disconnect() {
+        try {
+            objectInputStream.close();
+            objectOutputStream.close();
+            socket.close();
+            System.out.println("Connection Closed");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
