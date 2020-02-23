@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
 import domain.WARGame;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -72,6 +72,40 @@ public final class Utilities {
     public static boolean deleteWarGameJSONFile(WARGame warGame) {
         File file = new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
         return file.delete();
+    }
+
+    public static byte[] calculateFileChecksum(File file) {
+        MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] block = new byte[4096];
+            int length;
+            while ((length = in.read(block)) > 0) {
+                assert messageDigest != null;
+                messageDigest.update(block, 0, length);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        assert messageDigest != null;
+        return messageDigest.digest();
+    }
+
+    public static byte[] fileToByteArray(File file) {
+        byte[] byteArray = new byte[(int) file.length()];
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            fis.read(byteArray);
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return byteArray;
     }
 
 }

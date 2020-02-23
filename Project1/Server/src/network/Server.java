@@ -41,7 +41,7 @@ public class Server {
         } else if (serverType.equalsIgnoreCase("Follower")) {
             connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"), port);
             WARMessage iAmFollowerMessage = new WARMessage((byte) 6, new byte[]{1});
-            connectionToServer.send(iAmFollowerMessage);
+            connectionToServer.sendWarMessage(iAmFollowerMessage);
             /*while (true)
                 communicate();*/
         } else {
