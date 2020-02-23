@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 /**
+ * Domain object that is responsible for implementing game rules and flow.
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class WARGame {
@@ -17,10 +18,17 @@ public class WARGame {
     private List<Byte> cards;
     private ConnectionToServer connectionToServer;
 
+    /**
+     * Creates a new instance of {@code WARGame}
+     */
     public WARGame() {
         startNewGame();
     }
 
+    /**
+     * Opens a connection to master server, notifies this connection is for a player, and carries out the matchmaking
+     * related communication. Continuously calls {@link #playTurn()} method until the game end
+     */
     private void startNewGame() {
         connectionToServer = new ConnectionToServer(Configuration.getInstance().getProperty("server.address"),
                 Integer.parseInt(Configuration.getInstance().getProperty("server.port")));
@@ -29,6 +37,11 @@ public class WARGame {
             playTurn();
         }
     }
+
+    /**
+     * Notifies this connection is for a player, and carries out the matchmaking related communication.
+     * @return {@code byte} array that contains cards
+     */
     private byte[] connectToGame() {
         WARMessage iAmPlayerMessage = new WARMessage((byte) 6, new byte[]{0});
         connectionToServer.send(iAmPlayerMessage);
@@ -46,6 +59,9 @@ public class WARGame {
         }
     }
 
+    /**
+     * Implements logic of one WARGame turn by handling required console I/O operations and WARGame transmissions
+     */
     private void playTurn() {
         System.out.println("Cards: " + cards.toString());
         Scanner sc = new Scanner(System.in);
@@ -87,6 +103,10 @@ public class WARGame {
         }
     }
 
+    /**
+     * Interprets given {@param warMessage} object based on game rules
+     * @param warMessage {@code WARMessage} object to handle
+     */
     private void handleWarMessage (WARMessage warMessage) {
         switch (warMessage.getType()) {
             case 3:

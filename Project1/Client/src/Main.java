@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Entry point of Client
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class Main {
