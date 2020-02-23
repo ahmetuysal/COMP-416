@@ -34,6 +34,7 @@ public class ConnectionToServer {
             socket = new Socket(serverAddress, serverPort);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
+            this.socketClosedByServer = false;
             System.out.println("Successfully connected to " + serverAddress + " on port " + serverPort);
         } catch (EOFException e) {
             this.socketClosedByServer = true;
@@ -95,18 +96,28 @@ public class ConnectionToServer {
      */
     public void disconnect() {
         try {
-            objectInputStream.close();
-            objectOutputStream.close();
-            socket.close();
+            if (objectInputStream != null) {
+                objectInputStream.close();
+            }
+            if (objectOutputStream != null) {
+                objectOutputStream.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
             socketClosedByServer = true;
             System.out.println("Connection Closed");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Connection Already Closed by server");
+        } finally {
+            objectInputStream = null;
+            objectOutputStream = null;
+            socket = null;
         }
     }
 
     public boolean isConnectionActive() {
-        return !socketClosedByServer && this.socket.isConnected() && !this.socket.isClosed();
+        return !socketClosedByServer && this.socket != null && this.socket.isConnected() && !this.socket.isClosed();
     }
 
 }

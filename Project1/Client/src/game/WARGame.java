@@ -56,6 +56,9 @@ public class WARGame {
                 + "\nChoice: ");
         byte opt = sc.nextByte();
 
+        if (!connectionToServer.isConnectionActive())
+            return;
+
         if (opt == 1) {
             Random rand_ind = new Random();
             Byte card = cards.get(rand_ind.nextInt(cards.size()));
@@ -66,10 +69,13 @@ public class WARGame {
             }
             */
             cards.remove(card);
-
             WARMessage playCardMessage = new WARMessage((byte) 2, new byte[]{card});
             WARMessage playResultMessage = connectionToServer.sendForAnswer(playCardMessage);
-            handleWarMessage(playResultMessage);
+            if (playResultMessage == null) {
+                System.out.println("You won the game");
+            } else {
+                handleWarMessage(playResultMessage);
+            }
         } else if (opt == 2) {
             connectionToServer.disconnect();
             startNewGame();

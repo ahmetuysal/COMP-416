@@ -74,6 +74,10 @@ public final class Utilities {
         return file.delete();
     }
 
+    public static File getWarGameJSONFile(WARGame warGame) {
+        return new File(warGame.getPlayer1().getName() + "-" + warGame.getPlayer2().getName() + ".json");
+    }
+
     public static byte[] calculateFileChecksum(File file) {
         MessageDigest messageDigest = null;
         try {

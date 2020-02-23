@@ -173,12 +173,13 @@ public class WARGame {
      */
     public void loadFromDoc(Document doc) {
         this.gameID = doc.getObjectId("_id");
-        this.createdOn = doc.getDate("created_on");
-        this.lastChangedOn = doc.getDate("last_change");
-        this.player1 = (Player) doc.get("player1");
-        this.player2 = (Player) doc.get("player2");
-        this.isGameStarted = doc.getBoolean("is_started");
-        this.numRounds = doc.getInteger("rounds");
+        WARGame retrievedGame = (WARGame) doc.get("game");
+        this.isGameStarted = retrievedGame.isGameStarted();
+        this.createdOn = retrievedGame.getCreatedOn();
+        this.lastChangedOn = retrievedGame.getLastChangedOn();
+        this.player1 = retrievedGame.getPlayer1();
+        this.player2 = retrievedGame.getPlayer2();
+        this.numRounds = retrievedGame.getNumRounds();
     }
 
     /**
@@ -197,6 +198,7 @@ public class WARGame {
      */
     public void setNumRounds(int rounds) {
         this.numRounds = rounds;
+        this.lastChangedOn = new Date();
     }
 
 }
