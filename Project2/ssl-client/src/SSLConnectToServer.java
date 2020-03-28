@@ -119,6 +119,7 @@ public class SSLConnectToServer {
     /**
      * Sends a message as a string over the secure channel and receives
      * answer from the server
+     *
      * @param message input message
      * @return response from server
      */
