@@ -19,23 +19,25 @@ import java.security.KeyStore;
  */
 public class SSLServer extends Thread {
     private final String KS_FILE = "keystore.jks";
-    private final String KS_PASS = "storepass";
-    private final String SK_PASS = "keypass";
+    private final String KS_PASS = "sanane123";
+    private final String SK_PASS = "sanane123";
+    private final int port;
     private SSLServerSocket sslSocket;
     //private ServerControlPanel serverControlPanel;
 
 
     public SSLServer(int port) {
+        this.port = port;
+    }
+
+    @Override
+    public void run() {
         try {
-            //serverControlPanel = new ServerControlPanel("hello server!");
-            /*
-            Instance of SSL protocol with TLS variance
-             */
+            // serverControlPanel = new ServerControlPanel("hello server!");
+            // Instance of SSL protocol with TLS variance
             SSLContext sc = SSLContext.getInstance("TLS");
 
-            /*
-            Key management of the server
-             */
+            // Key management of the server
             char[] ksPass = KS_PASS.toCharArray();
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream(KS_FILE), ksPass);
@@ -44,9 +46,7 @@ public class SSLServer extends Thread {
             sc.init(kmf.getKeyManagers(), null, null);
 
 
-            /*
-            SSL socket factory which creates SSLSockets
-             */
+            // SSL socket factory which creates SSLSockets
             SSLServerSocketFactory sslFactory = sc.getServerSocketFactory();
             sslSocket = (SSLServerSocket) sslFactory.createServerSocket(port);
 
@@ -60,8 +60,8 @@ public class SSLServer extends Thread {
 
     }
 
-    /*
-    Listens to the line and starts a connection on receiving a request with the client
+    /**
+     * Listens to the line and starts a connection on receiving a request with the client
      */
     private void listenAndAccept() {
         SSLSocket s;
@@ -70,7 +70,6 @@ public class SSLServer extends Thread {
             System.out.println("An SSL connection was established with a client on the address of " + s.getRemoteSocketAddress());
             SSLServerThread st = new SSLServerThread(s);
             st.start();
-
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Server Class.Connection establishment error inside listen and accept function");

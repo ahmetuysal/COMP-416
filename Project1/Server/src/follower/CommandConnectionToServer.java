@@ -100,7 +100,6 @@ public class CommandConnectionToServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**

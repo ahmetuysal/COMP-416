@@ -131,7 +131,7 @@ public class SSLConnectToServer {
             response = is.readLine();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("ConnectionToServer. SendForAnswer. Socket read Error");
+            System.out.println("ConnectionToServer. sendForAnswer. Socket read Error");
         }
         return response;
     }

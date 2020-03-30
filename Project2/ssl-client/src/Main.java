@@ -16,26 +16,31 @@
 public class Main {
     public final static String TLS_SERVER_ADDRESS = "localhost";
     public final static String MESSAGE_TO_TLS_SERVER = "hello from client";
-    public final static int TLS_SERVER_PORT = 4444;
+    public final static int TLS_SERVER_PORT = (4444 + 1 + 2) % 65535;
+    public final static int TLS_CERTIFICATE_PORT = 4444;
 
     public static void main(String[] args) throws Exception {
-        /*
-        Creates an SSLConnectToServer object on the specified server address and port
-         */
+
+        SLLCertificateRetriever sllCertificateRetriever = new SLLCertificateRetriever(TLS_SERVER_ADDRESS, TLS_CERTIFICATE_PORT);
+
+        boolean isCertificateRetrieved =  sllCertificateRetriever.retrieveCertificateFromServer();
+
+        if (!isCertificateRetrieved) {
+            throw new Exception("Cannot get the ssl certificate of the server.");
+        }
+
+        System.out.println("Certificate part is done");
+
+        // Creates an SSLConnectToServer object on the specified server address and port
         SSLConnectToServer sslConnectToServer = new SSLConnectToServer(TLS_SERVER_ADDRESS, TLS_SERVER_PORT);
-        /*
-        Connects to the server
-         */
+
+        // Connects to the server
         sslConnectToServer.connect();
 
-        /*
-        Sends a message over SSL socket to the server and prints out the received message from the server
-         */
+        // Sends a message over SSL socket to the server and prints out the received message from the server
         System.out.println(sslConnectToServer.sendForAnswer(MESSAGE_TO_TLS_SERVER));
 
-        /*
-        Disconnects from the SSL server
-         */
+        //Disconnects from the SSL server
         sslConnectToServer.disconnect();
     }
 }
