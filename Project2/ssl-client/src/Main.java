@@ -15,7 +15,6 @@
  */
 public class Main {
     public final static String TLS_SERVER_ADDRESS = "localhost";
-    public final static String MESSAGE_TO_TLS_SERVER = "hello from client";
     public final static int TLS_SERVER_PORT = (4444 + 1 + 2) % 65535;
     public final static int TLS_CERTIFICATE_PORT = 4444;
 
@@ -35,8 +34,28 @@ public class Main {
         // Connects to the server
         sslConnectToServer.connect();
 
-        // Sends a message over SSL socket to the server and prints out the received message from the server
-        System.out.println(sslConnectToServer.sendForAnswer(MESSAGE_TO_TLS_SERVER));
+        String chars = sslConnectToServer.retrieveEmailAddressCharactersAtIndex(0);
+        StringBuilder[] stringBuilders = new StringBuilder[chars.length()];
+        for (int i = 0; i < chars.length(); i++) {
+            stringBuilders[i] = new StringBuilder(String.valueOf(chars.charAt(i)));
+        }
+        System.out.println(chars);
+
+        for (int i = 1; ; i++) {
+            sslConnectToServer.connect();
+            chars = sslConnectToServer.retrieveEmailAddressCharactersAtIndex(i);
+            if (chars == null || chars.equals("")) {
+                break;
+            }
+            System.out.println(chars);
+            for (int j = 0; j < chars.length(); j++) {
+                stringBuilders[j].append(chars.charAt(j));
+            }
+        }
+
+        for (StringBuilder sb : stringBuilders) {
+            System.out.println(sb.toString());
+        }
 
         //Disconnects from the SSL server
         sslConnectToServer.disconnect();

@@ -117,23 +117,20 @@ public class SSLConnectToServer {
     }
 
     /**
-     * Sends a message as a string over the secure channel and receives
-     * answer from the server
+     * receives email addresses from the server over the secure channel
      *
-     * @param message input message
      * @return response from server
      */
-    public String sendForAnswer(String message) {
-        String response = "";
+    public String retrieveEmailAddressCharactersAtIndex(int index) {
         try {
-            os.println(message);
+            os.write(index) ;
             os.flush();
-            response = is.readLine();
+            return is.readLine();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("ConnectionToServer. sendForAnswer. Socket read Error");
+            System.err.println("ConnectionToServer. retrieveEmailAddressCharactersAtIndex. Socket read Error");
+            return null;
         }
-        return response;
     }
 
 
