@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 /**
@@ -18,6 +19,9 @@ public class SLLCertificateRetriever {
     }
 
     public boolean retrieveCertificateFromServer() {
+        if (socket == null) {
+            return false;
+        }
         Scanner scanner = new Scanner(System.in);
         try {
             System.out.println(bufferedReader.readLine());
@@ -28,7 +32,7 @@ public class SLLCertificateRetriever {
             outputStreamPrintWriter.println(username + " " + password);
             outputStreamPrintWriter.flush();
             String response = bufferedReader.readLine();
-            while (! "You are successfully authenticated, sending the certificate".equals(response)) {
+            while (!"You are successfully authenticated, sending the certificate".equals(response)) {
                 System.out.println(response);
                 System.out.print("Please enter your username: ");
                 username = scanner.nextLine();
@@ -40,6 +44,9 @@ public class SLLCertificateRetriever {
             }
             receiveCertificateFile();
             return true;
+        } catch (SocketException e) {
+            System.err.println("Server on address " + socket.getRemoteSocketAddress() + " disconnected, executing the certificate retriever thread.");
+            return false;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -63,11 +70,15 @@ public class SLLCertificateRetriever {
     private void receiveCertificateFile() {
         int count;
         byte[] buffer = new byte[BUFFER_SIZE];
-        try (FileOutputStream fileOutputStream = new FileOutputStream("clientkeystore")) {
-            // TODO: what is wrong here?
+        try (FileOutputStream fileOutputStream = new FileOutputStream("server_crt.crt")) {
             while ((count = dataInputStream.read(buffer)) > 0) {
-                System.out.println(count);
-                fileOutputStream.write(buffer, 0, count);
+                if (buffer[count - 1] == 26) {
+                    // Break if EOF is received
+                    fileOutputStream.write(buffer, 0, count - 1);
+                    break;
+                } else {
+                    fileOutputStream.write(buffer, 0, count);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

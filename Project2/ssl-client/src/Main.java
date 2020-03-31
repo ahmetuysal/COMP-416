@@ -23,13 +23,11 @@ public class Main {
 
         SLLCertificateRetriever sllCertificateRetriever = new SLLCertificateRetriever(TLS_SERVER_ADDRESS, TLS_CERTIFICATE_PORT);
 
-        boolean isCertificateRetrieved =  sllCertificateRetriever.retrieveCertificateFromServer();
+        boolean isCertificateRetrieved = sllCertificateRetriever.retrieveCertificateFromServer();
 
         if (!isCertificateRetrieved) {
             throw new Exception("Cannot get the ssl certificate of the server.");
         }
-
-        System.out.println("Certificate part is done");
 
         // Creates an SSLConnectToServer object on the specified server address and port
         SSLConnectToServer sslConnectToServer = new SSLConnectToServer(TLS_SERVER_ADDRESS, TLS_SERVER_PORT);
