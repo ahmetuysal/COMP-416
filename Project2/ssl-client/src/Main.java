@@ -15,7 +15,7 @@
  */
 public class Main {
     public final static String TLS_SERVER_ADDRESS = "localhost";
-    public final static int TLS_SERVER_PORT = (4444 + 1 + 2) % 65535;
+    public final static int TLS_SERVER_PORT = (60780 + 60124 + 60045) % 65535;
     public final static int TLS_CERTIFICATE_PORT = 4444;
 
     public static void main(String[] args) throws Exception {
