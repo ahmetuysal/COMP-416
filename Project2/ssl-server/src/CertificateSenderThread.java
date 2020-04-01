@@ -65,9 +65,10 @@ public class CertificateSenderThread extends Thread {
             byte[] bytes = new byte[BUFFER_SIZE];
             int count;
             while ((count = certificateFileInputStream.read(bytes)) > 0) {
-                System.out.println(count);
                 socket.getOutputStream().write(bytes, 0, count);
             }
+            // send EOF character
+            socket.getOutputStream().write(26);
             System.out.println("Done sending the file");
         } catch (IOException e) {
             e.printStackTrace();

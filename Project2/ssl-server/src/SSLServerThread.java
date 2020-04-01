@@ -37,36 +37,32 @@ public class SSLServerThread extends Thread {
             System.out.println("Server Thread. Run. IO error in server thread");
         }
 
-        String line = "";
+        MailAddressHelper mailAddressHelper = MailAddressHelper.getInstance();
         try {
-            line = is.readLine();
-            String SERVER_REPLY = "Hello Client";
-            os.write(SERVER_REPLY);
+            int index = is.read();
+//            System.out.println("Index: " + index);
+            os.write(mailAddressHelper.getCharactersAtIndex(index));
+//            System.out.println("Sent " + mailAddressHelper.getCharactersAtIndex(index));
             os.flush();
-            System.out.println("Client " + sslSocket.getRemoteSocketAddress() + " sent : " + line);
-
-
         } catch (IOException e) {
-            line = this.getClass().toString(); //reused String line for getting thread name
-            System.out.println("Server Thread. Run. IO Error/ Client " + line + " terminated abruptly");
+            System.out.println("Server Thread. Run. IO Error/ Client " + this.getClass().toString() + " terminated abruptly");
         } catch (NullPointerException e) {
-            line = this.getClass().toString(); //reused String line for getting thread name
-            System.out.println("Server Thread. Run.Client " + line + " Closed");
+            System.out.println("Server Thread. Run.Client " + this.getClass().toString() + " Closed");
         } finally {
             try {
                 System.out.println("Closing the connection");
                 if (is != null) {
                     is.close();
-                    System.out.println(" Socket Input Stream Closed");
+//                    System.out.println(" Socket Input Stream Closed");
                 }
 
                 if (os != null) {
                     os.close();
-                    System.out.println("Socket Out Closed");
+//                    System.out.println("Socket Out Closed");
                 }
                 if (sslSocket != null) {
                     sslSocket.close();
-                    System.out.println("Socket Closed");
+//                    System.out.println("Socket Closed");
                 }
 
             } catch (IOException ie) {

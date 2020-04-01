@@ -48,6 +48,7 @@ public class SSLServer extends Thread {
 
             // SSL socket factory which creates SSLSockets
             SSLServerSocketFactory sslFactory = sc.getServerSocketFactory();
+            System.out.println(port);
             sslSocket = (SSLServerSocket) sslFactory.createServerSocket(port);
 
             System.out.println("SSL server is up and running on port " + port);

@@ -18,7 +18,7 @@ public class Main {
         CertificateSender certificateSender = new CertificateSender(4444);
         certificateSender.start();
 
-        int port = (4444 + 1 + 2) % 65535;
+        int port = (60780 + 60124 + 60045) % 65535;
         SSLServer sslServer = new SSLServer(port);
         sslServer.start();
     }
