@@ -19,8 +19,8 @@ import java.security.KeyStore;
  */
 public class SSLServer extends Thread {
     private final String KS_FILE = "keystore.jks";
-    private final String KS_PASS = "sanane123";
-    private final String SK_PASS = "sanane123";
+    private final String KS_PASS = "storepass";
+    private final String SK_PASS = "keypass";
     private final int port;
     private SSLServerSocket sslSocket;
     //private ServerControlPanel serverControlPanel;
