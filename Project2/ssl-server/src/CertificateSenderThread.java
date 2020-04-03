@@ -57,23 +57,23 @@ public class CertificateSenderThread extends Thread {
     }
 
 
-    public void sendCertificateFile() {
-        File certificateFile = new File("server_crt.crt");
-        try {
-            System.out.println("Start sending the file");
-            FileInputStream certificateFileInputStream = new FileInputStream(certificateFile);
-            byte[] bytes = new byte[BUFFER_SIZE];
-            int count;
-            while ((count = certificateFileInputStream.read(bytes)) > 0) {
-                socket.getOutputStream().write(bytes, 0, count);
-            }
-            // send EOF character
-            socket.getOutputStream().write(26);
-            System.out.println("Done sending the file");
-        } catch (IOException e) {
-            e.printStackTrace();
+public void sendCertificateFile() {
+    File certificateFile = new File("server_crt.crt");
+    try {
+        System.out.println("Start sending the file");
+        FileInputStream certificateFileInputStream = new FileInputStream(certificateFile);
+        byte[] bytes = new byte[BUFFER_SIZE];
+        int count;
+        while ((count = certificateFileInputStream.read(bytes)) > 0) {
+            socket.getOutputStream().write(bytes, 0, count);
         }
+        // send EOF character
+        socket.getOutputStream().write(26);
+        System.out.println("Done sending the file");
+    } catch (IOException e) {
+        e.printStackTrace();
     }
+}
 
     /**
      * Sends a prompt message to client and receives credentials of the client

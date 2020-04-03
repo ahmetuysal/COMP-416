@@ -123,7 +123,7 @@ public class SSLConnectToServer {
      */
     public String retrieveEmailAddressCharactersAtIndex(int index) {
         try {
-            os.write(index) ;
+            os.write(index);
             os.flush();
             return is.readLine();
         } catch (IOException e) {

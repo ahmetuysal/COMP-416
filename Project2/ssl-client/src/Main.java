@@ -15,7 +15,7 @@
  */
 public class Main {
     public final static String TLS_SERVER_ADDRESS = "localhost";
-    public final static int TLS_SERVER_PORT = (60780 + 60124 + 60045) % 65535;
+    public final static int TLS_SERVER_PORT = 1024 + (60780 + 60124 + 60045) % 64512;
     public final static int TLS_CERTIFICATE_PORT = 4444;
 
     public static void main(String[] args) throws Exception {
@@ -31,10 +31,10 @@ public class Main {
         // Creates an SSLConnectToServer object on the specified server address and port
         SSLConnectToServer sslConnectToServer = new SSLConnectToServer(TLS_SERVER_ADDRESS, TLS_SERVER_PORT);
 
-        // Connects to the server
         sslConnectToServer.connect();
-
         String chars = sslConnectToServer.retrieveEmailAddressCharactersAtIndex(0);
+        sslConnectToServer.disconnect();
+
         StringBuilder[] stringBuilders = new StringBuilder[chars.length()];
         for (int i = 0; i < chars.length(); i++) {
             stringBuilders[i] = new StringBuilder(String.valueOf(chars.charAt(i)));
@@ -44,6 +44,7 @@ public class Main {
         for (int i = 1; ; i++) {
             sslConnectToServer.connect();
             chars = sslConnectToServer.retrieveEmailAddressCharactersAtIndex(i);
+            sslConnectToServer.disconnect();
             if (chars == null || chars.equals("")) {
                 break;
             }
@@ -57,7 +58,5 @@ public class Main {
             System.out.println(sb.toString());
         }
 
-        //Disconnects from the SSL server
-        sslConnectToServer.disconnect();
     }
 }
