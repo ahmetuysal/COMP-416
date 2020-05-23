@@ -4,6 +4,7 @@ import domain.Message;
 import domain.Node;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,33 +32,39 @@ public class ModivSim {
                     BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
                     String content;
                     Random rand = new Random();
+                    List<String> l = null;
                     while ((content = reader.readLine()) != null) {
-                        List<String> l = new ArrayList<>(Arrays.asList(content.split(",")));
-                        int nodeID = Integer.parseInt(l.get(0));
-                        int neighborID = 0;
-                        HashMap<Integer, List<Integer>> linkCost = new HashMap<>();
-                        HashMap<Integer, Integer> linkBandwidth = new HashMap<>();
-                        l.remove(0);
-                        for (String s : l) {
-                            if (s.contains("(")) {
-                                neighborID = Integer.parseInt(s.substring(s.indexOf("(") + 1));
-                            } else if (s.contains(")")) {
-                                linkBandwidth.put(neighborID, Integer.parseInt(s.substring(0, s.indexOf(")"))));
-                            } else if(s.contains("x")) {
-                                linkCost.put(neighborID, new ArrayList<>(2)); // need to tell make the link dynamic within the node as well.
-                                linkCost.get(neighborID).add(1); // dynamic link
-                                linkCost.get(neighborID).add(rand.nextInt(10) + 1);
-                            } else {
-                                linkCost.put(neighborID, new ArrayList<>(2));
-                                linkCost.get(neighborID).add(0); // static link
-                                linkCost.get(neighborID).add(Integer.parseInt(s));
+                        if (path.getFileName().toString().contains("Node")) {
+                            l = new ArrayList<>(Arrays.asList(content.split(",")));
+                            int nodeID = Integer.parseInt(l.get(0));
+                            int neighborID = 0;
+                            HashMap<Integer, List<Integer>> linkCost = new HashMap<>();
+                            HashMap<Integer, Integer> linkBandwidth = new HashMap<>();
+                            l.remove(0);
+                            for (String s : l) {
+                                if (s.contains("(")) {
+                                    neighborID = Integer.parseInt(s.substring(s.indexOf("(") + 1));
+                                } else if (s.contains(")")) {
+                                    linkBandwidth.put(neighborID, Integer.parseInt(s.substring(0, s.indexOf(")"))));
+                                } else if (s.contains("x")) {
+                                    linkCost.put(neighborID, new ArrayList<>(2)); // need to tell make the link dynamic within the node as well.
+                                    linkCost.get(neighborID).add(0, 1); // dynamic link
+                                    linkCost.get(neighborID).add(1, rand.nextInt(10) + 1);
+                                } else {
+                                    linkCost.put(neighborID, new ArrayList<>(2));
+                                    linkCost.get(neighborID).add(0, 0); // static link
+                                    linkCost.get(neighborID).add(1, Integer.parseInt(s));
+                                }
                             }
+                            nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
+                        } else if(path.getFileName().toString().contains("Flow")) {
+                            // TODO: Parse flow inputs.
                         }
-
-                        nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             });
         } catch (IOException e) {

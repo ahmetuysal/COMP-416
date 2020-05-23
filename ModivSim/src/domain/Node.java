@@ -51,7 +51,7 @@ public class Node extends Thread {
 
         AtomicBoolean isTableUpdated = new AtomicBoolean(false);
         Random rand = new Random();
-        
+
         // assuming the round decision is made here.
         linkCost.forEach((neighborId, cost) -> {
             if(cost.get(0) == 1)
