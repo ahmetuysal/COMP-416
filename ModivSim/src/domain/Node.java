@@ -54,7 +54,7 @@ public class Node {
 
         Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
         neighborDistanceVector.forEach((nodeId, cost) -> {
-            if (cost + costToNeighbor < this.distanceVector.get(nodeId)) {
+            if (!this.distanceVector.containsKey(nodeId) || cost + costToNeighbor < this.distanceVector.get(nodeId)) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
                 this.distanceTable.put(nodeId, new KeyValuePair<>(pathToNeighbor, cost + costToNeighbor));
                 isTableUpdated.set(true);
