@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Node {
+public class Node extends Thread {
 
     private final int nodeId;
     private final Map<Integer, Integer> linkCost;
@@ -88,6 +88,11 @@ public class Node {
 
     }
 
+    public Map<Integer, List<Integer>> getForwardingTable()
+    {
+        return new HashMap<Integer, List<Integer>>();
+    }
+
     private void connect(String serverAddress, int serverPort) {
         try {
             socket = new Socket(serverAddress, serverPort);
@@ -120,4 +125,6 @@ public class Node {
             socket = null;
         }
     }
+
+
 }
