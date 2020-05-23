@@ -45,8 +45,6 @@ public class Node extends Thread {
 
 
     public synchronized void receiveUpdate(Message message) {
-        if (!neighbors.contains(message.getSenderId())) return;
-
         int neighborID = message.getSenderId();
         int costToNeighbor = this.distanceVector.get(neighborID);
         int pathToNeighbor = this.distanceTable.get(neighborID).entrySet().stream()
@@ -85,6 +83,7 @@ public class Node extends Thread {
             }
         });
 
+        this.isUpdateRequired = false;
         return true;
     }
 

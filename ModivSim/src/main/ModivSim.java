@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -59,20 +60,23 @@ public class ModivSim {
         }
 
         for (Node node : nodes.values()) {
-            System.out.println(node.getNodeId());
             node.start();
         }
 
+
         while (true) {
             try {
-                Message message = concurrentMessageQueue.take();
+                Message message = concurrentMessageQueue.poll(5, TimeUnit.SECONDS);
+                if (message == null)
+                    break;
                 nodes.get(message.getReceiverId()).receiveUpdate(message);
-                System.out.println(message.getSenderId() + ": " + nodes.get(message.getReceiverId()).getForwardingTable().toString());
-
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
+        for (Node node : nodes.values()) {
+            System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
+        }
     }
 }
