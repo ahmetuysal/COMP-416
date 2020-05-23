@@ -48,15 +48,41 @@ public class Node extends Thread {
 
 
     public synchronized void receiveUpdate(Message message) {
+
+        AtomicBoolean isTableUpdated = new AtomicBoolean(false);
+        Random rand = new Random();
+        
+        // assuming the round decision is made here.
+        linkCost.forEach((neighborId, cost) -> {
+            if(cost.get(0) == 1)
+            {
+                if(rand.nextBoolean()) {
+                    // changing dynamic cost.
+                    cost.set(1, rand.nextInt(10) + 1);
+                    this.distanceVector.put(neighborId, cost.get(1));
+                    this.distanceTable.get(neighborId).put(neighborId, cost.get(1));
+                    isTableUpdated.set(true);
+                }
+            }
+        });
+
         int neighborID = message.getSenderId();
         int costToNeighbor = this.distanceVector.get(neighborID);
         int pathToNeighbor = this.distanceTable.get(neighborID).entrySet().stream()
                 .min(Comparator.comparingInt(Map.Entry::getValue)).get().getKey();
 
-        AtomicBoolean isTableUpdated = new AtomicBoolean(false);
-
         Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
+
+        // need to update the dynamic cost among neighbors as well (if the neighbor has dynamically changed it).
+
+        if(this.linkCost.get(neighborID).get(0) == 1 && this.distanceVector.get(neighborID) != neighborDistanceVector.get(this.nodeId)) {
+            this.distanceVector.put(neighborID, neighborDistanceVector.get(this.nodeId));
+            this.distanceTable.get(neighborID).put(neighborID, neighborDistanceVector.get(this.nodeId));
+            isTableUpdated.set(true);
+        }
+
         neighborDistanceVector.forEach((nodeId, cost) -> {
+
             if (nodeId == this.nodeId)
                 return;
 
@@ -115,17 +141,13 @@ public class Node extends Thread {
                     .sorted(Comparator.comparingInt(Map.Entry::getValue))
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toList());
-            forwardingTable.put(nodeId, forwardingEntry);
+            forwardingTable.put(nodeId, forwardingEntry.subList(0,2));
         }
         return forwardingTable;
     }
 
     public int getNodeId() {
         return nodeId;
-    }
-
-    public void setDynamicLinks(boolean isDynamic) {
-        this.dynamicLinks = isDynamic;
     }
 
 }
