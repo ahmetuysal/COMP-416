@@ -1,3 +1,10 @@
+package domain;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.*;
 
 public class Node {
@@ -10,6 +17,11 @@ public class Node {
     private List<Integer> neighbors;
     private int[] bottleneckBandwidthTable;
     private int numNeighbors;
+    protected ObjectInputStream objectInputStream;
+    protected ObjectOutputStream objectOutputStream;
+    private Socket socket;
+    private boolean socketClosedByServer;
+    private boolean update = false;
 
     public Node(int nodeID, Hashtable<Integer, Integer> linkCost, Hashtable<Integer, Integer> linkBandwidth)
     {
@@ -38,10 +50,14 @@ public class Node {
             }
         }
 
+        connect("localhost", 4444);
+
     }
 
     public void receiveUpdate(Message receivedMessage)
     {
+        if(!neighbors.contains(receivedMessage.getNodeID())) return;
+
         int neighborID = receivedMessage.getNodeID();
         HashMap<Integer, Integer> neighborDV = receivedMessage.getDistanceVector();
         Set<Integer> keySet = neighborDV.keySet();
@@ -53,6 +69,7 @@ public class Node {
                 distanceTable.put(nnID, new ArrayList<>(2));
                 distanceTable.get(nnID).add(neighborID);
                 distanceTable.get(nnID).add(distanceToNode);
+                update = true;
             }
             else
             {
@@ -60,25 +77,75 @@ public class Node {
                 {
                     distanceTable.get(nnID).add(0, neighborID);
                     distanceTable.get(nnID).add(1,distanceToNode);
+                    update = true;
                 }
             }
         }
 
-        for(int i : distanceTable.keySet())
-        {
-            distanceVector.put(i, distanceTable.get(i).get(1));
-        }
-
-        sendUpdate();
         // inform neighbors
+        sendUpdate();
+        return;
 
     }
 
     public boolean sendUpdate()
     {
-        Message information = new Message(nodeID, neighbors, distanceVector);
-        // how to directly call neighboring nodes?
-        return false;
+        if(update){
+            for(int i : distanceTable.keySet())
+            {
+                distanceVector.put(i, distanceTable.get(i).get(1));
+            }
+            Message information = new Message(nodeID, neighbors, distanceVector);
+            try {
+                objectOutputStream.writeObject(information);
+                objectOutputStream.flush();
+            } catch (SocketException e) {
+                this.socketClosedByServer = true;
+                disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+
+        // how to directly call neighboring nodes' receive message function?
+
+    }
+
+    private void connect(String serverAddress, int serverPort) {
+        try {
+            socket = new Socket(serverAddress, serverPort);
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Successfully connected to " + serverAddress + " on port " + serverPort);
+        } catch (IOException e) {
+            System.err.println("Error: no server has been found on " + serverAddress + "/" + serverPort);
+        }
+    }
+
+    public void disconnect() {
+        try {
+            if (objectInputStream != null) {
+                objectInputStream.close();
+            }
+            if (objectOutputStream != null) {
+                objectOutputStream.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+            socketClosedByServer = true;
+            System.out.println("Connection Closed");
+        } catch (IOException e) {
+            System.out.println("Connection Already Closed by server");
+        } finally {
+            objectInputStream = null;
+            objectOutputStream = null;
+            socket = null;
+        }
     }
 
     public Hashtable<Integer, Integer> getForwardingTable()
