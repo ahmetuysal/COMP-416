@@ -1,3 +1,5 @@
+package domain;
+
 /**
  * @author Ahmet Uysal @ahmetuysal
  */

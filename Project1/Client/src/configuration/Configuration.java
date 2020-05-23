@@ -1,8 +1,8 @@
 package configuration;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+        import java.io.InputStream;
+        import java.util.Properties;
 
 /**
  * Wrapper singleton class around Properties for accessing user related parameters such as MongoDB connection properties,
