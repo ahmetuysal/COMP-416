@@ -1,101 +1,65 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Node {
 
-    private int nodeID;
-    private Hashtable<Integer, Integer> linkCost;
-    private Hashtable<Integer, Integer> linkBandwidth;
-    private HashMap<Integer, Integer> distanceVector;
-    private HashMap<Integer,List<Integer>> distanceTable;
-    private List<Integer> neighbors;
-    private int[] bottleneckBandwidthTable;
-    private int numNeighbors;
+    private final int nodeId;
+    private final Map<Integer, Integer> linkCost;
+    private final Map<Integer, Integer> linkBandwidth;
+    private final Map<Integer, Integer> distanceVector;
+    private final Map<Integer, KeyValuePair<Integer, Integer>> distanceTable;
+    private final List<Integer> neighbors;
+    private final Map<Integer, Integer> bottleneckBandwidthTable;
+    private boolean isUpdateRequired = false;
 
-    public Node(int nodeID, Hashtable<Integer, Integer> linkCost, Hashtable<Integer, Integer> linkBandwidth)
-    {
-        this.nodeID = nodeID;
+    public Node(int nodeId, Map<Integer, Integer> linkCost, Map<Integer, Integer> linkBandwidth) {
+        this.nodeId = nodeId;
         this.linkCost = linkCost;
         this.linkBandwidth = linkBandwidth;
 
-        // TODO: init distance table as well.
-
-        Set<Integer> keySet = linkCost.keySet();
-        neighbors = new ArrayList<>(keySet);
+        this.neighbors = new ArrayList<>(linkCost.keySet());
         this.distanceVector = new HashMap<>();
-        distanceTable = new HashMap<>(); // would require instantiating each arraylist element.
-        //neighbors.add(nodeID);
-        //ArrayList<Integer> insList = (ArrayList<Integer>) Collections.nCopies(Collections.max(neighbors) + 1, 999);
-        //neighbors.remove(neighbors.indexOf(nodeID));
-        distanceTable.put(nodeID, new ArrayList<>(2));
-        // Collections.fill(distanceTable.get(nodeID), 999);
-        distanceTable.get(nodeID).add(nodeID);
-        distanceTable.get(nodeID).add(0);
-        for (int neighborID : neighbors) {
-            if(neighborID != nodeID) {
-                distanceTable.put(neighborID, new ArrayList<>(2));
-                distanceTable.get(neighborID).add(nodeID);
-                distanceTable.get(neighborID).add(linkCost.get(neighborID));
+        this.distanceTable = new HashMap<>();
+        this.bottleneckBandwidthTable = new HashMap<>();
+
+        linkCost.forEach((neighborId, cost) -> {
+            this.distanceVector.put(neighborId, cost);
+            this.distanceTable.put(neighborId, new KeyValuePair<>(neighborId, cost));
+        });
+    }
+
+    public void receiveUpdate(Message message) {
+        int neighborID = message.getSenderId();
+        int costToNeighbor = this.distanceVector.get(neighborID);
+        int pathToNeighbor = this.distanceTable.get(neighborID).getKey();
+
+        AtomicBoolean isTableUpdated = new AtomicBoolean(false);
+
+        Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
+        neighborDistanceVector.forEach((nodeId, cost) -> {
+            if (cost + costToNeighbor < this.distanceVector.get(nodeId)) {
+                this.distanceVector.put(nodeId, cost + costToNeighbor);
+                this.distanceTable.put(nodeId, new KeyValuePair<>(pathToNeighbor, cost + costToNeighbor));
+                isTableUpdated.set(true);
             }
+        });
+
+        if (isTableUpdated.get()) {
+            this.isUpdateRequired = true;
+        }
+    }
+
+    public boolean sendUpdate() {
+        if (!this.isUpdateRequired) {
+            return false;
         }
 
-    }
+        // send update
 
-    public void receiveUpdate(Message receivedMessage)
-    {
-        int neighborID = receivedMessage.getNodeID();
-        HashMap<Integer, Integer> neighborDV = receivedMessage.getDistanceVector();
-        Set<Integer> keySet = neighborDV.keySet();
-        ArrayList<Integer> neighborNs = new ArrayList<>(keySet);
-        for(int nnID : neighborNs) {
-            int distanceToNode = distanceTable.get(neighborID).get(1) + neighborDV.get(nnID);
-            if (!distanceTable.containsKey(nnID))
-            {
-                distanceTable.put(nnID, new ArrayList<>(2));
-                distanceTable.get(nnID).add(neighborID);
-                distanceTable.get(nnID).add(distanceToNode);
-            }
-            else
-            {
-                if(distanceTable.get(nnID).get(1) != distanceToNode)
-                {
-                    distanceTable.get(nnID).add(0, neighborID);
-                    distanceTable.get(nnID).add(1,distanceToNode);
-                }
-            }
-        }
-
-        for(int i : distanceTable.keySet())
-        {
-            distanceVector.put(i, distanceTable.get(i).get(1));
-        }
-
-        sendUpdate();
-        // inform neighbors
-
-    }
-
-    public boolean sendUpdate()
-    {
-        Message information = new Message(nodeID, neighbors, distanceVector);
-        // how to directly call neighboring nodes?
-        return false;
-    }
-
-    public Hashtable<Integer, Integer> getForwardingTable()
-    {
-
-        return new Hashtable<Integer, Integer>();
-
-    }
-
-    public int getNodeID()
-    {
-        return nodeID;
-    }
-
-    public List<Integer> getNeighbors()
-    {
-        return neighbors;
+        return true;
     }
 
 }

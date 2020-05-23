@@ -1,45 +1,32 @@
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 public class Message {
 
-    // TODO: Implement messages.
+    private final int senderId;
+    private final int receiverId;
+    private final int linkBandwidth;
+    private final Map<Integer, Integer> senderDistanceVector;
 
-    private List<Integer> neighbors;
-    private HashMap<Integer, Integer> distanceVector;
-    private int nodeID;
-
-    public Message(int nodeID, List<Integer> neighbors, HashMap<Integer, Integer> distanceVector)
-    {
-        this.neighbors = neighbors;
-        this.distanceVector = distanceVector;
-        this.nodeID = nodeID;
+    public Message(int senderId, int receiverId, int linkBandwidth, Map<Integer, Integer> senderDistanceVector) {
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.linkBandwidth = linkBandwidth;
+        this.senderDistanceVector = senderDistanceVector;
     }
 
-    public List<Integer> getNeighbors() {
-        return neighbors;
+    public int getSenderId() {
+        return senderId;
     }
 
-    public HashMap<Integer, Integer> getDistanceVector() {
-        return distanceVector;
+    public int getReceiverId() {
+        return receiverId;
     }
 
-    public int getNodeID()
-    {
-        return nodeID;
+    public int getLinkBandwidth() {
+        return linkBandwidth;
     }
 
-    public void setNeighbors(List<Integer> neighbors) {
-        this.neighbors = neighbors;
+    public Map<Integer, Integer> getSenderDistanceVector() {
+        return senderDistanceVector;
     }
-
-    public void setDistanceVector(HashMap<Integer, Integer> distanceVector) {
-        this.distanceVector = distanceVector;
-    }
-
-    public void setNodeID(int nodeID)
-    {
-        this.nodeID = nodeID;
-    }
-
 }
