@@ -12,15 +12,17 @@ import java.util.stream.Collectors;
 public class Node extends Thread {
 
     private final int nodeId;
-    private final Map<Integer, Integer> linkCost;
+    private final Map<Integer, List<Integer>> linkCost;
     private final Map<Integer, Integer> linkBandwidth;
     private final HashMap<Integer, Integer> distanceVector;
     private final Map<Integer, Map<Integer, Integer>> distanceTable;
     private final List<Integer> neighbors;
     private final Map<Integer, Integer> bottleneckBandwidthTable;
     private boolean isUpdateRequired = true;
+    private boolean dynamicLinks = false;
 
-    public Node(int nodeId, Map<Integer, Integer> linkCost, Map<Integer, Integer> linkBandwidth) {
+    public Node(int nodeId, Map<Integer, List<Integer>> linkCost, Map<Integer, Integer> linkBandwidth) {
+
         this.nodeId = nodeId;
         this.linkCost = linkCost;
         this.linkBandwidth = linkBandwidth;
@@ -32,9 +34,9 @@ public class Node extends Thread {
         this.bottleneckBandwidthTable = new HashMap<>();
 
         linkCost.forEach((neighborId, cost) -> {
-            this.distanceVector.put(neighborId, cost);
+            this.distanceVector.put(neighborId, cost.get(1));
             Map<Integer, Integer> distanceTableRow = new HashMap<>();
-            distanceTableRow.put(neighborId, cost);
+            distanceTableRow.put(neighborId, cost.get(1));
             this.distanceTable.put(neighborId, distanceTableRow);
         });
     }
@@ -60,10 +62,10 @@ public class Node extends Thread {
 
             if (!this.distanceTable.containsKey(nodeId)) {
                 this.distanceTable.put(nodeId, new HashMap<>());
-            }
-
-            if (!this.distanceVector.containsKey(nodeId)) {
-                this.distanceVector.put(nodeId, cost);
+                this.distanceTable.get(nodeId).put(neighborID, cost + costToNeighbor);
+                isTableUpdated.set(true);
+            } else if (!this.distanceVector.containsKey(nodeId)) {
+                this.distanceVector.put(nodeId, cost + costToNeighbor);
                 isTableUpdated.set(true);
             } else if (cost + costToNeighbor < this.distanceVector.get(nodeId)) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
@@ -71,7 +73,15 @@ public class Node extends Thread {
                 isTableUpdated.set(true);
             } else if (!this.distanceTable.get(nodeId).containsKey(pathToNeighbor)) {
                 this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
+                this.distanceVector.put(pathToNeighbor, cost + costToNeighbor);
+                // this.distanceVector.put()
+                isTableUpdated.set(true);
+            } else if(cost + costToNeighbor < this.distanceTable.get(nodeId).get(pathToNeighbor) ) {
+                this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
+                this.distanceVector.put(pathToNeighbor, cost + costToNeighbor);
+                isTableUpdated.set(true);
             }
+
         });
 
         if (isTableUpdated.get()) {
@@ -113,4 +123,9 @@ public class Node extends Thread {
     public int getNodeId() {
         return nodeId;
     }
+
+    public void setDynamicLinks(boolean isDynamic) {
+        this.dynamicLinks = isDynamic;
+    }
+
 }
