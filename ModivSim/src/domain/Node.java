@@ -54,7 +54,8 @@ public class Node extends Thread {
 
         Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
         neighborDistanceVector.forEach((nodeId, cost) -> {
-            if (!this.distanceVector.containsKey(nodeId) || cost + costToNeighbor < this.distanceVector.get(nodeId)) {
+            if ((nodeId != this.nodeId) &&
+                    (!this.distanceVector.containsKey(nodeId) || cost + costToNeighbor < this.distanceVector.get(nodeId))) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
                 if (!this.distanceTable.containsKey(nodeId)) {
                     this.distanceTable.put(nodeId, new HashMap<>());
@@ -91,7 +92,7 @@ public class Node extends Thread {
         Map<Integer, List<Integer>> forwardingTable = new HashMap<>();
         for (Integer nodeId : this.distanceTable.keySet()) {
             List<Integer> forwardingEntry = this.distanceTable.get(nodeId).entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals(nodeId))
+                    .filter(entry -> !entry.getKey().equals(this.nodeId))
                     .sorted(Comparator.comparingInt(Map.Entry::getValue))
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toList());
