@@ -59,6 +59,7 @@ public class ModivSim {
         }
 
         for (Node node : nodes.values()) {
+            System.out.println(node.getNodeId());
             node.start();
         }
 
@@ -66,6 +67,8 @@ public class ModivSim {
             try {
                 Message message = concurrentMessageQueue.take();
                 nodes.get(message.getReceiverId()).receiveUpdate(message);
+                System.out.println(message.getReceiverId() + ": " + nodes.get(message.getReceiverId()).getForwardingTable().toString());
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
