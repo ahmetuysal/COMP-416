@@ -67,7 +67,7 @@ public class ModivSim {
             try {
                 Message message = concurrentMessageQueue.take();
                 nodes.get(message.getReceiverId()).receiveUpdate(message);
-                System.out.println(message.getReceiverId() + ": " + nodes.get(message.getReceiverId()).getForwardingTable().toString());
+                System.out.println(message.getSenderId() + ": " + nodes.get(message.getReceiverId()).getForwardingTable().toString());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
