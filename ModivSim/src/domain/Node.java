@@ -1,17 +1,14 @@
 package domain;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Node {
+public class Node extends Thread {
 
     private final int nodeId;
     private final Map<Integer, Integer> linkCost;
@@ -23,9 +20,6 @@ public class Node {
     protected ObjectInputStream objectInputStream;
     protected ObjectOutputStream objectOutputStream;
     private boolean isUpdateRequired = false;
-    private Socket socket;
-    private boolean socketClosedByServer;
-    private boolean update = false;
 
     public Node(int nodeId, Map<Integer, Integer> linkCost, Map<Integer, Integer> linkBandwidth) {
         this.nodeId = nodeId;
@@ -43,7 +37,19 @@ public class Node {
         });
     }
 
-    public void receiveUpdate(Message message) {
+    public void run() {
+        while (true) {
+            sendUpdate();
+            try {
+                wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public synchronized void receiveUpdate(Message message) {
         if (!neighbors.contains(message.getSenderId())) return;
 
         int neighborID = message.getSenderId();
@@ -71,53 +77,6 @@ public class Node {
             return false;
         }
 
-        // TODO: send update
-        Message message = new Message(this.nodeId, 0, 0, this.distanceVector);
-        try {
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
-        } catch (SocketException e) {
-            this.socketClosedByServer = true;
-            disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         return true;
-
-
-    }
-
-    private void connect(String serverAddress, int serverPort) {
-        try {
-            socket = new Socket(serverAddress, serverPort);
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-            System.out.println("Successfully connected to " + serverAddress + " on port " + serverPort);
-        } catch (IOException e) {
-            System.err.println("Error: no server has been found on " + serverAddress + "/" + serverPort);
-        }
-    }
-
-    public void disconnect() {
-        try {
-            if (objectInputStream != null) {
-                objectInputStream.close();
-            }
-            if (objectOutputStream != null) {
-                objectOutputStream.close();
-            }
-            if (socket != null) {
-                socket.close();
-            }
-            socketClosedByServer = true;
-            System.out.println("Connection Closed");
-        } catch (IOException e) {
-            System.out.println("Connection Already Closed by server");
-        } finally {
-            objectInputStream = null;
-            objectOutputStream = null;
-            socket = null;
-        }
     }
 }
