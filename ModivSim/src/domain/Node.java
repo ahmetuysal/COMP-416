@@ -27,6 +27,7 @@ public class Node extends Thread {
 
         this.neighbors = new ArrayList<>(linkCost.keySet());
         this.distanceVector = new HashMap<>();
+        this.distanceVector.put(this.nodeId, 0);
         this.distanceTable = new HashMap<>();
         this.bottleneckBandwidthTable = new HashMap<>();
 
@@ -54,14 +55,22 @@ public class Node extends Thread {
 
         Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
         neighborDistanceVector.forEach((nodeId, cost) -> {
-            if ((nodeId != this.nodeId) &&
-                    (!this.distanceVector.containsKey(nodeId) || cost + costToNeighbor < this.distanceVector.get(nodeId))) {
+            if (nodeId == this.nodeId)
+                return;
+
+            if (!this.distanceTable.containsKey(nodeId)) {
+                this.distanceTable.put(nodeId, new HashMap<>());
+            }
+
+            if (!this.distanceVector.containsKey(nodeId)) {
+                this.distanceVector.put(nodeId, cost);
+                isTableUpdated.set(true);
+            } else if (cost + costToNeighbor < this.distanceVector.get(nodeId)) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
-                if (!this.distanceTable.containsKey(nodeId)) {
-                    this.distanceTable.put(nodeId, new HashMap<>());
-                }
                 this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
                 isTableUpdated.set(true);
+            } else if (!this.distanceTable.get(nodeId).containsKey(pathToNeighbor)) {
+                this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
             }
         });
 
