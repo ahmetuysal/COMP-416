@@ -62,6 +62,7 @@ public class Node extends Thread {
                     this.distanceVector.put(neighborId, cost.get(1));
                     this.distanceTable.get(neighborId).put(neighborId, cost.get(1));
                     isTableUpdated.set(true);
+                    System.out.println("Dynamic change: " + this.nodeId + " changed link to " + neighborId);
                 }
             }
         });
@@ -75,9 +76,10 @@ public class Node extends Thread {
 
         // need to update the dynamic cost among neighbors as well (if the neighbor has dynamically changed it).
 
-        if(this.linkCost.get(neighborID).get(0) == 1 && this.distanceVector.get(neighborID) != neighborDistanceVector.get(this.nodeId)) {
+        if(this.linkCost.get(neighborID).get(0) == 1 && this.distanceVector.get(neighborID) != neighborDistanceVector.get(this.nodeId) && !isTableUpdated.get()) {
             this.distanceVector.put(neighborID, neighborDistanceVector.get(this.nodeId));
             this.distanceTable.get(neighborID).put(neighborID, neighborDistanceVector.get(this.nodeId));
+            System.out.println(this.nodeId + " changed link due to " + neighborID);
             isTableUpdated.set(true);
         }
 
