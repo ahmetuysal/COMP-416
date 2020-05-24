@@ -1,5 +1,6 @@
 package main;
 
+import domain.FlowRouting;
 import domain.Link;
 import domain.Message;
 import domain.Node;
@@ -12,10 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 /**
@@ -30,6 +28,7 @@ public class ModivSim {
         HashMap<Integer, Node> nodes = new HashMap<>();
         Set<Link> dynamicLinks = new HashSet<>();
         Random rand = new Random();
+        boolean executed = false;
 
         try (Stream<Path> walk = Files.walk(Paths.get("src/nodeData"))) {
             walk.filter(Files::isRegularFile).forEach(path -> {
@@ -115,6 +114,12 @@ public class ModivSim {
 
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
+            executed = true;
+        }
+
+        if(executed) {
+            FlowRouting flow = new FlowRouting(nodes);
+            flow.handleFlows();
         }
 
         service.shutdown();

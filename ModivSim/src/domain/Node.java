@@ -127,4 +127,7 @@ public class Node extends Thread {
         return nodeId;
     }
 
+    public Map<Integer, Integer> getLinkBandwidth() {
+        return linkBandwidth;
+    }
 }
