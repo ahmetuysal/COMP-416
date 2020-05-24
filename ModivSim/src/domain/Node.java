@@ -140,8 +140,9 @@ public class Node extends Thread {
                     .filter(entry -> !entry.getKey().equals(this.nodeId))
                     .sorted(Comparator.comparingInt(Map.Entry::getValue))
                     .map(Map.Entry::getKey)
+                    .limit(2)
                     .collect(Collectors.toList());
-            forwardingTable.put(nodeId, forwardingEntry.subList(0,2));
+            forwardingTable.put(nodeId, forwardingEntry);
         }
         return forwardingTable;
     }
