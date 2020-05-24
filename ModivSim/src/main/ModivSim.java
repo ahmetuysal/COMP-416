@@ -1,5 +1,6 @@
 package main;
 
+import domain.Link;
 import domain.Message;
 import domain.Node;
 
@@ -11,9 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 /**
@@ -26,19 +28,21 @@ public class ModivSim {
     public static void main(String[] args) {
 
         HashMap<Integer, Node> nodes = new HashMap<>();
+        Set<Link> dynamicLinks = new HashSet<>();
+        Random rand = new Random();
+
         try (Stream<Path> walk = Files.walk(Paths.get("src/nodeData"))) {
             walk.filter(Files::isRegularFile).forEach(path -> {
                 try {
                     BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
                     String content;
-                    Random rand = new Random();
                     List<String> l = null;
                     while ((content = reader.readLine()) != null) {
                         if (path.getFileName().toString().contains("Node")) {
                             l = new ArrayList<>(Arrays.asList(content.split(",")));
                             int nodeID = Integer.parseInt(l.get(0));
                             int neighborID = 0;
-                            HashMap<Integer, List<Integer>> linkCost = new HashMap<>();
+                            HashMap<Integer, Integer> linkCost = new HashMap<>();
                             HashMap<Integer, Integer> linkBandwidth = new HashMap<>();
                             l.remove(0);
                             for (String s : l) {
@@ -47,17 +51,24 @@ public class ModivSim {
                                 } else if (s.contains(")")) {
                                     linkBandwidth.put(neighborID, Integer.parseInt(s.substring(0, s.indexOf(")"))));
                                 } else if (s.contains("x")) {
-                                    linkCost.put(neighborID, new ArrayList<>(2)); // need to tell make the link dynamic within the node as well.
-                                    linkCost.get(neighborID).add(0, 1); // dynamic link
-                                    linkCost.get(neighborID).add(1, rand.nextInt(10) + 1);
+                                    Link dynamicLink = new Link(nodeID, neighborID, rand.nextInt(10) + 1);
+                                    if (dynamicLinks.contains(dynamicLink)) {
+                                        int initialDynamicLinkCost = dynamicLinks.stream()
+                                                .filter(link -> link.equals(dynamicLink))
+                                                .findFirst()
+                                                .get()
+                                                .getInitialCost();
+                                        linkCost.put(neighborID, initialDynamicLinkCost);
+                                    } else {
+                                        dynamicLinks.add(dynamicLink);
+                                        linkCost.put(neighborID, dynamicLink.getInitialCost());
+                                    }
                                 } else {
-                                    linkCost.put(neighborID, new ArrayList<>(2));
-                                    linkCost.get(neighborID).add(0, 0); // static link
-                                    linkCost.get(neighborID).add(1, Integer.parseInt(s));
+                                    linkCost.put(neighborID, Integer.parseInt(s));
                                 }
                             }
                             nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
-                        } else if(path.getFileName().toString().contains("Flow")) {
+                        } else if (path.getFileName().toString().contains("Flow")) {
                             // TODO: Parse flow inputs.
                         }
                     }
@@ -71,10 +82,25 @@ public class ModivSim {
             e.printStackTrace();
         }
 
+
+        // create scheduler for each node and one for dynamic link update if there are any dynamic links
+        final ScheduledExecutorService service = Executors.newScheduledThreadPool(nodes.size() + (dynamicLinks.isEmpty() ? 0 : 1));
         for (Node node : nodes.values()) {
-            node.start();
+            service.scheduleAtFixedRate(node, 0, 200, TimeUnit.MILLISECONDS);
         }
 
+        if (!dynamicLinks.isEmpty()) {
+            service.scheduleAtFixedRate(() -> {
+                dynamicLinks.forEach(dynamicLink -> {
+                    if (rand.nextBoolean()) {
+                        int newCost = rand.nextInt(10) + 1;
+                        nodes.get(dynamicLink.getNode1Id()).changeDynamicLinkCost(dynamicLink.getNode2Id(), newCost);
+                        nodes.get(dynamicLink.getNode2Id()).changeDynamicLinkCost(dynamicLink.getNode1Id(), newCost);
+                        System.out.println("Link between Node " + dynamicLink.getNode1Id() + " and Node " + dynamicLink.getNode2Id() + " changed its cost to " + newCost);
+                    }
+                });
+            }, 0, 200, TimeUnit.MILLISECONDS);
+        }
 
         while (true) {
             try {
@@ -90,5 +116,7 @@ public class ModivSim {
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
         }
+
+        service.shutdown();
     }
 }

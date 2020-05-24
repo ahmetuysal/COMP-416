@@ -3,25 +3,21 @@ package domain;
 import main.ModivSim;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class Node extends Thread {
 
     private final int nodeId;
-    private final Map<Integer, List<Integer>> linkCost;
+    private final Map<Integer, Integer> linkCost;
     private final Map<Integer, Integer> linkBandwidth;
     private final HashMap<Integer, Integer> distanceVector;
     private final Map<Integer, Map<Integer, Integer>> distanceTable;
     private final List<Integer> neighbors;
     private final Map<Integer, Integer> bottleneckBandwidthTable;
     private boolean isUpdateRequired = true;
-    private boolean dynamicLinks = false;
 
-    public Node(int nodeId, Map<Integer, List<Integer>> linkCost, Map<Integer, Integer> linkBandwidth) {
+    public Node(int nodeId, Map<Integer, Integer> linkCost, Map<Integer, Integer> linkBandwidth) {
 
         this.nodeId = nodeId;
         this.linkCost = linkCost;
@@ -34,44 +30,33 @@ public class Node extends Thread {
         this.bottleneckBandwidthTable = new HashMap<>();
 
         linkCost.forEach((neighborId, cost) -> {
-            this.distanceVector.put(neighborId, cost.get(1));
+            this.distanceVector.put(neighborId, cost);
             Map<Integer, Integer> distanceTableRow = new HashMap<>();
-            distanceTableRow.put(neighborId, cost.get(1));
+            distanceTableRow.put(neighborId, cost);
             this.distanceTable.put(neighborId, distanceTableRow);
         });
     }
 
     public void run() {
-        final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(this::sendUpdate, 0, 200, TimeUnit.MILLISECONDS);
+        sendUpdate();
+    }
+
+    public void changeDynamicLinkCost(int neighborId, int newCost) {
+        this.linkCost.put(neighborId, newCost);
+        this.distanceTable.get(neighborId).put(neighborId, newCost);
+        int newShortestPathCost = this.distanceTable.get(neighborId).entrySet().stream()
+                .min(Comparator.comparingInt(Map.Entry::getValue))
+                .get().getValue();
+        if (newShortestPathCost < this.distanceVector.get(neighborId)) {
+            this.distanceVector.put(neighborId, newShortestPathCost);
+            this.isUpdateRequired = true;
+        }
+        System.out.println("Dynamic change: " + this.nodeId + " changed link to " + neighborId);
     }
 
 
     public synchronized void receiveUpdate(Message message) {
-
         AtomicBoolean isVectorUpdated = new AtomicBoolean(false);
-        Random rand = new Random();
-
-        // assuming the round decision is made here.
-        linkCost.forEach((neighborId, cost) -> {
-            if (cost.get(0) == 1) {
-                if (rand.nextBoolean()) {
-                    // changing dynamic cost.
-                    cost.set(1, rand.nextInt(10) + 1);
-                    // update distance table
-                    this.distanceTable.get(neighborId).put(neighborId, cost.get(1));
-                    // check distance vector for updates
-                    int newShortestPathCost = this.distanceTable.get(neighborId).entrySet().stream()
-                            .min(Comparator.comparingInt(Map.Entry::getValue))
-                            .get().getValue();
-                    if (newShortestPathCost < this.distanceVector.get(neighborId)) {
-                        this.distanceVector.put(neighborId, newShortestPathCost);
-                        isVectorUpdated.set(true);
-                    }
-                    System.out.println("Dynamic change: " + this.nodeId + " changed link to " + neighborId);
-                }
-            }
-        });
 
         int neighborID = message.getSenderId();
         int costToNeighbor = this.distanceVector.get(neighborID);
