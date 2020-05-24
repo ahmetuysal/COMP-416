@@ -49,19 +49,25 @@ public class Node extends Thread {
 
     public synchronized void receiveUpdate(Message message) {
 
-        AtomicBoolean isTableUpdated = new AtomicBoolean(false);
+        AtomicBoolean isVectorUpdated = new AtomicBoolean(false);
         Random rand = new Random();
 
         // assuming the round decision is made here.
         linkCost.forEach((neighborId, cost) -> {
-            if(cost.get(0) == 1)
-            {
-                if(rand.nextBoolean()) {
+            if (cost.get(0) == 1) {
+                if (rand.nextBoolean()) {
                     // changing dynamic cost.
                     cost.set(1, rand.nextInt(10) + 1);
-                    this.distanceVector.put(neighborId, cost.get(1));
+                    // update distance table
                     this.distanceTable.get(neighborId).put(neighborId, cost.get(1));
-                    isTableUpdated.set(true);
+                    // check distance vector for updates
+                    int newShortestPathCost = this.distanceTable.get(neighborId).entrySet().stream()
+                            .min(Comparator.comparingInt(Map.Entry::getValue))
+                            .get().getValue();
+                    if (newShortestPathCost < this.distanceVector.get(neighborId)) {
+                        this.distanceVector.put(neighborId, newShortestPathCost);
+                        isVectorUpdated.set(true);
+                    }
                     System.out.println("Dynamic change: " + this.nodeId + " changed link to " + neighborId);
                 }
             }
@@ -74,45 +80,28 @@ public class Node extends Thread {
 
         Map<Integer, Integer> neighborDistanceVector = message.getSenderDistanceVector();
 
-        // need to update the dynamic cost among neighbors as well (if the neighbor has dynamically changed it).
-
-        if(this.linkCost.get(neighborID).get(0) == 1 && this.distanceVector.get(neighborID) != neighborDistanceVector.get(this.nodeId) && !isTableUpdated.get()) {
-            this.distanceVector.put(neighborID, neighborDistanceVector.get(this.nodeId));
-            this.distanceTable.get(neighborID).put(neighborID, neighborDistanceVector.get(this.nodeId));
-            System.out.println(this.nodeId + " changed link due to " + neighborID);
-            isTableUpdated.set(true);
-        }
-
         neighborDistanceVector.forEach((nodeId, cost) -> {
-
             if (nodeId == this.nodeId)
                 return;
 
             if (!this.distanceTable.containsKey(nodeId)) {
                 this.distanceTable.put(nodeId, new HashMap<>());
                 this.distanceTable.get(nodeId).put(neighborID, cost + costToNeighbor);
-                isTableUpdated.set(true);
-            } else if (!this.distanceVector.containsKey(nodeId)) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
-                isTableUpdated.set(true);
+                isVectorUpdated.set(true);
             } else if (cost + costToNeighbor < this.distanceVector.get(nodeId)) {
                 this.distanceVector.put(nodeId, cost + costToNeighbor);
                 this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
-                isTableUpdated.set(true);
+                isVectorUpdated.set(true);
             } else if (!this.distanceTable.get(nodeId).containsKey(pathToNeighbor)) {
                 this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
-                this.distanceVector.put(pathToNeighbor, cost + costToNeighbor);
-                // this.distanceVector.put()
-                isTableUpdated.set(true);
-            } else if(cost + costToNeighbor < this.distanceTable.get(nodeId).get(pathToNeighbor) ) {
+            } else if (cost + costToNeighbor < this.distanceTable.get(nodeId).get(pathToNeighbor)) {
                 this.distanceTable.get(nodeId).put(pathToNeighbor, cost + costToNeighbor);
-                this.distanceVector.put(pathToNeighbor, cost + costToNeighbor);
-                isTableUpdated.set(true);
             }
 
         });
 
-        if (isTableUpdated.get()) {
+        if (isVectorUpdated.get()) {
             this.isUpdateRequired = true;
             System.out.println("Node " + this.nodeId + " updated its table!");
         }
