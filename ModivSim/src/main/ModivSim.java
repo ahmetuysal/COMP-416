@@ -6,14 +6,16 @@ import domain.Message;
 import domain.Node;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +29,8 @@ public class ModivSim {
 
         HashMap<Integer, Node> nodes = new HashMap<>();
         Set<Link> dynamicLinks = new HashSet<>();
+        Set<Link> allLinks = new HashSet<>();
+
         Random rand = new Random();
         boolean executed = false;
 
@@ -43,27 +47,39 @@ public class ModivSim {
                             int neighborID = 0;
                             HashMap<Integer, Integer> linkCost = new HashMap<>();
                             HashMap<Integer, Integer> linkBandwidth = new HashMap<>();
+                            boolean isDynamic = false;
+                            int assignedCost = -1;
                             l.remove(0);
                             for (String s : l) {
+                                System.out.println(s);
                                 if (s.contains("(")) {
                                     neighborID = Integer.parseInt(s.substring(s.indexOf("(") + 1));
-                                } else if (s.contains(")")) {
-                                    linkBandwidth.put(neighborID, Integer.parseInt(s.substring(0, s.indexOf(")"))));
-                                } else if (s.contains("x")) {
-                                    Link dynamicLink = new Link(nodeID, neighborID, rand.nextInt(10) + 1);
-                                    if (dynamicLinks.contains(dynamicLink)) {
-                                        int initialDynamicLinkCost = dynamicLinks.stream()
-                                                .filter(link -> link.equals(dynamicLink))
-                                                .findFirst()
-                                                .get()
-                                                .getInitialCost();
-                                        linkCost.put(neighborID, initialDynamicLinkCost);
-                                    } else {
-                                        dynamicLinks.add(dynamicLink);
-                                        linkCost.put(neighborID, dynamicLink.getInitialCost());
-                                    }
                                 } else {
-                                    linkCost.put(neighborID, Integer.parseInt(s));
+                                    if (s.contains(")")) {
+                                        int bandwidth = Integer.parseInt(s.substring(0, s.indexOf(")")));
+                                        linkBandwidth.put(neighborID, bandwidth);
+                                        Link link = new Link(nodeID, neighborID, assignedCost, bandwidth);
+                                        // We don't need to check for duplicate links since they are added to sets and
+                                        // Link.equals method is symmetric for nodeId1 and nodeId2
+                                        if (isDynamic) {
+                                            dynamicLinks.add(link);
+                                        }
+                                        allLinks.add(link);
+                                    } else if (s.contains("x")) {
+                                        isDynamic = true;
+                                        int finalNeighborID = neighborID;
+                                        Optional<Link> alreadyAddedDynamicLink = dynamicLinks.stream()
+                                                .filter(link -> ((link.getNode1Id() == nodeID && link.getNode2Id() == finalNeighborID) ||
+                                                        (link.getNode2Id() == nodeID && link.getNode1Id() == finalNeighborID)))
+                                                .findFirst();
+
+                                        assignedCost = alreadyAddedDynamicLink.map(Link::getCost).orElseGet(() -> rand.nextInt(10) + 1);
+                                        linkCost.put(neighborID, assignedCost);
+                                    } else {
+                                        isDynamic = false;
+                                        assignedCost = Integer.parseInt(s);
+                                        linkCost.put(neighborID, assignedCost);
+                                    }
                                 }
                             }
                             nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
@@ -71,8 +87,6 @@ public class ModivSim {
                             // TODO: Parse flow inputs.
                         }
                     }
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -80,6 +94,9 @@ public class ModivSim {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println(dynamicLinks);
+        System.out.println(allLinks);
 
 
         // create scheduler for each node and one for dynamic link update if there are any dynamic links
