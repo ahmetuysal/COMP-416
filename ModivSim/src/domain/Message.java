@@ -2,6 +2,9 @@ package domain;
 
 import java.util.Map;
 
+/**
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
+ */
 public class Message {
 
     private final int senderId;

@@ -5,6 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
+ */
 public class FlowRouting {
 
     private final HashMap<Integer, Node> nodes;

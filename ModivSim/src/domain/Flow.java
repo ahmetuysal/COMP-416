@@ -3,7 +3,7 @@ package domain;
 import java.util.List;
 
 /**
- * @author Ahmet Uysal @ahmetuysal
+ * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class Flow {
     final String name;
