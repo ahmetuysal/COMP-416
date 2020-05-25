@@ -93,8 +93,6 @@ public class FlowRouting {
                 long endTime = clock.millis() + time * 100;
                 activeFlows.put(flowLabel, contents);
             }
-            System.out.println(activeFlows);
-            System.out.println(queue);
         }
 
         while(!activeFlows.isEmpty());
