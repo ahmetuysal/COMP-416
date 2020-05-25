@@ -32,7 +32,6 @@ public class ModivSim {
         Set<Link> allLinks = new HashSet<>();
 
         Random rand = new Random();
-        boolean executed = false;
 
         try (Stream<Path> walk = Files.walk(Paths.get("src/nodeData"))) {
             walk.filter(Files::isRegularFile).forEach(path -> {
@@ -121,8 +120,9 @@ public class ModivSim {
         while (true) {
             try {
                 Message message = concurrentMessageQueue.poll(5, TimeUnit.SECONDS);
-                if (message == null)
+                if (message == null){
                     break;
+                }
                 nodes.get(message.getReceiverId()).receiveUpdate(message);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -131,13 +131,12 @@ public class ModivSim {
 
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
-            executed = true;
         }
 
-        if(executed) {
-            FlowRouting flow = new FlowRouting(nodes);
-            flow.handle();
-        }
+        FlowRouting flow = new FlowRouting(nodes);
+        flow.handle();
+
+
 
         service.shutdown();
     }
