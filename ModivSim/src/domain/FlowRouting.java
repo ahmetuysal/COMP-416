@@ -15,11 +15,20 @@ public class FlowRouting {
     private HashMap<String, List<Integer>> activeFlows = new HashMap<String, List<Integer>>();
     private HashMap<String, List<Integer>> queue = new HashMap<String, List<Integer>>();
     private Clock clock;
+    private int flowsNum;
+    private boolean[][] links;
 
     public FlowRouting(HashMap<Integer, Node> nodes) {
         this.nodes = nodes;
         registerFlows();
         clock = Clock.systemDefaultZone();
+        links = new boolean[nodes.size()][nodes.size()];
+        for(int i=0; i<nodes.size(); i++){
+            for(int j=0; j<nodes.size(); j++){
+                links[i][j] = false;
+            }
+        }
+
     }
 
     public void registerFlows(){
@@ -42,21 +51,53 @@ public class FlowRouting {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        flowsNum = flows.size();
     }
 
-    public void handleFlows(){
+    public void handle(){
         for(String flowLabel : flows.keySet()){
             List<Integer> contents = flows.get(flowLabel);
-            int cost = nodes.get(contents.get(0)).getLinkBandwidth().get(contents.get(1));
-            int time = contents.get(2) / cost;
-            long endTime = clock.millis() + time*100;
+            Node currentNode = nodes.get(contents.get(0));
+            int endNode = contents.get(1);
+            int nodeStep = -1;
+            ArrayList<Integer> path = new ArrayList<Integer>();
+            int bandwidth = 0;
+            boolean activated = true;
+            path.add(currentNode.getNodeId());
+            while(nodeStep != endNode){
+                boolean linkIsEmpty = false;
+                for(int i = 0; i<2; i++){
+                    nodeStep = currentNode.getForwardingTable().get(endNode).get(i);
+                    if(links[currentNode.getNodeId()][nodeStep] == false){
+                        linkIsEmpty = true;
+                        break;
+                    }
+                }
+                if(linkIsEmpty) {
+                    bandwidth += currentNode.getLinkBandwidth().get(nodeStep);
+                    currentNode = nodes.get(nodeStep);
+                    path.add(nodeStep);
+                }else{
+                    activated = false;
+                    queue.put(flowLabel, contents);
+                    break;
+                }
+            }
 
-
-
-
+            if(activated) {
+                for(int i=0; i<path.size()-1; i++){
+                    links[path.get(i)][path.get(i+1)] = true;
+                }
+                System.out.println(path + " " + bandwidth);
+                int time = contents.get(2) / bandwidth;
+                long endTime = clock.millis() + time * 100;
+                activeFlows.put(flowLabel, contents);
+            }
+            System.out.println(activeFlows);
+            System.out.println(queue);
         }
 
         while(!activeFlows.isEmpty());
     }
+
 }

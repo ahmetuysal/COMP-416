@@ -119,7 +119,7 @@ public class ModivSim {
 
         if(executed) {
             FlowRouting flow = new FlowRouting(nodes);
-            flow.handleFlows();
+            flow.handle();
         }
 
         service.shutdown();
