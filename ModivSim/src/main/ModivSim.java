@@ -30,9 +30,7 @@ public class ModivSim {
         HashMap<Integer, Node> nodes = new HashMap<>();
         Set<Link> dynamicLinks = new HashSet<>();
         Set<Link> allLinks = new HashSet<>();
-
         Random rand = new Random();
-        boolean executed = false;
 
         try (Stream<Path> walk = Files.walk(Paths.get("src/nodeData"))) {
             walk.filter(Files::isRegularFile).forEach(path -> {
@@ -51,7 +49,6 @@ public class ModivSim {
                             int assignedCost = -1;
                             l.remove(0);
                             for (String s : l) {
-                                System.out.println(s);
                                 if (s.contains("(")) {
                                     neighborID = Integer.parseInt(s.substring(s.indexOf("(") + 1));
                                 } else {
@@ -95,10 +92,6 @@ public class ModivSim {
             e.printStackTrace();
         }
 
-        System.out.println(dynamicLinks);
-        System.out.println(allLinks);
-
-
         // create scheduler for each node and one for dynamic link update if there are any dynamic links
         final ScheduledExecutorService service = Executors.newScheduledThreadPool(nodes.size() + (dynamicLinks.isEmpty() ? 0 : 1));
         for (Node node : nodes.values()) {
@@ -129,16 +122,13 @@ public class ModivSim {
             }
         }
 
+        service.shutdown();
+
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
-            executed = true;
         }
 
-        if(executed) {
-            FlowRouting flow = new FlowRouting(nodes);
-            flow.handle();
-        }
-
-        service.shutdown();
+        FlowRouting flow = new FlowRouting(nodes, allLinks);
+        flow.handle();
     }
 }
