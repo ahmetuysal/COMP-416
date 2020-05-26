@@ -100,8 +100,11 @@ public class ModivSim extends JFrame {
 
         // create scheduler for each node and one for dynamic link update if there are any dynamic links
         final ScheduledExecutorService service = Executors.newScheduledThreadPool(nodes.size() + (dynamicLinks.isEmpty() ? 0 : 1));
+        long startTime = System.currentTimeMillis();
+        long roundPeriodMilliseconds = 200;
+
         for (Node node : nodes.values()) {
-            service.scheduleAtFixedRate(node, 0, 200, TimeUnit.MILLISECONDS);
+            service.scheduleAtFixedRate(node, 0, roundPeriodMilliseconds, TimeUnit.MILLISECONDS);
         }
 
         if (!dynamicLinks.isEmpty()) {
@@ -114,12 +117,14 @@ public class ModivSim extends JFrame {
                         System.out.println("Link between Node " + dynamicLink.getNode1Id() + " and Node " + dynamicLink.getNode2Id() + " changed its cost to " + newCost);
                     }
                 });
-            }, 0, 200, TimeUnit.MILLISECONDS);
+            }, 0, roundPeriodMilliseconds, TimeUnit.MILLISECONDS);
         }
+
+        long timeoutMilliseconds = 5000;
 
         while (true) {
             try {
-                Message message = concurrentMessageQueue.poll(5, TimeUnit.SECONDS);
+                Message message = concurrentMessageQueue.poll(timeoutMilliseconds, TimeUnit.MILLISECONDS);
                 if (message == null) {
                     break;
                 }
@@ -137,6 +142,11 @@ public class ModivSim extends JFrame {
         }
 
         service.shutdown();
+        long endTime = System.currentTimeMillis();
+
+        int estimatedRoundCount = (int) (((endTime - startTime - timeoutMilliseconds) / roundPeriodMilliseconds) + 1);
+
+        System.out.println("Simulation took " + estimatedRoundCount + " rounds");
 
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
