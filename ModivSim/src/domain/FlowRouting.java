@@ -19,7 +19,6 @@ public class FlowRouting {
     private final List<Flow> activeFlows;
     private final List<Flow> queuedFlows;
     private JTextArea appOutput;
-    private double completionTime = 0;
     private HashMap<Integer, Map<Integer, List<Integer>>> forwardingTables;
 
     public FlowRouting(HashMap<Integer, Node> nodes, Set<Link> links, JTextArea appOutput) {
@@ -93,10 +92,9 @@ public class FlowRouting {
                 break;
             Flow flowToFinish = activeFlows.stream().min(Comparator.comparingDouble(Flow::getCompletionTime)).get();
             flowToFinish.setDone(true);
-            completionTime += flowToFinish.getCompletionTime();
-            appOutput.append("\nFlow " + flowToFinish.getName() + " is finished after " + completionTime);
             double timeToNextStep = flowToFinish.getCompletionTime();
             totalTimeSpent += timeToNextStep;
+            appOutput.append("\nFlow " + flowToFinish.getName() + " is finished after " + totalTimeSpent);
             activeFlows.forEach(fl -> {
                 fl.increaseSentDataMbits(fl.getUsedBandwidth() * timeToNextStep);
                 fl.getAssignedPath().forEach(link -> link.releaseBandwidth(fl.getUsedBandwidth()));
