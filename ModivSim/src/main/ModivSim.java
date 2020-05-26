@@ -32,6 +32,13 @@ public class ModivSim extends JFrame {
         HashMap<Integer, Node> nodes = new HashMap<>();
         HashMap<Integer, JFrame> nodeDisplays = new HashMap<>();
         HashMap<Integer, JLabel> nodeContents = new HashMap<>();
+
+        JFrame appWindow = new JFrame("ModivSim");
+        appWindow.setSize(300, 300);
+        JLabel appOutput = new JLabel("Running simulation...");
+        appWindow.add(appOutput);
+        appWindow.setVisible(true);
+
         Set<Link> dynamicLinks = new HashSet<>();
         Set<Link> allLinks = new HashSet<>();
         Random rand = new Random();
@@ -102,7 +109,7 @@ public class ModivSim extends JFrame {
         // create scheduler one for round sendUpdate and counter, and one for dynamic link update if there are any dynamic links
         final ScheduledExecutorService service = Executors.newScheduledThreadPool(dynamicLinks.isEmpty() ? 1 : 2);
         AtomicInteger roundCount = new AtomicInteger(0);
-        long roundPeriodMilliseconds = 200;
+        long roundPeriodMilliseconds = 1000;
 
         service.scheduleAtFixedRate(() -> {
             boolean anyUpdates = false;
@@ -150,7 +157,7 @@ public class ModivSim extends JFrame {
 
         service.shutdown();
 
-        System.out.println("Simulation took " + roundCount.get() + " rounds");
+        appOutput.setText("Simulation took " + roundCount.get() + " rounds");
 
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
