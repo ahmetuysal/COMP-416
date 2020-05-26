@@ -133,4 +133,8 @@ public class Node extends Thread {
     public Map<Integer, Integer> getLinkBandwidth() {
         return linkBandwidth;
     }
+
+    public HashMap<Integer, Integer> getDistanceVector() {
+        return distanceVector;
+    }
 }

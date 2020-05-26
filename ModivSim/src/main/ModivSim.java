@@ -5,6 +5,7 @@ import domain.Link;
 import domain.Message;
 import domain.Node;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,13 +22,15 @@ import java.util.stream.Stream;
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
-public class ModivSim {
+public class ModivSim extends JFrame {
 
     public static final LinkedBlockingQueue<Message> concurrentMessageQueue = new LinkedBlockingQueue<>();
 
     public static void main(String[] args) {
 
         HashMap<Integer, Node> nodes = new HashMap<>();
+        HashMap<Integer, JFrame> nodeDisplays = new HashMap<>();
+        HashMap<Integer, JLabel> nodeContents = new HashMap<>();
         Set<Link> dynamicLinks = new HashSet<>();
         Set<Link> allLinks = new HashSet<>();
         Random rand = new Random();
@@ -80,8 +83,11 @@ public class ModivSim {
                                 }
                             }
                             nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
-                        } else if (path.getFileName().toString().contains("Flow")) {
-                            // TODO: Parse flow inputs.
+                            nodeDisplays.put(nodeID, new JFrame("Node " + nodeID));
+                            nodeDisplays.get(nodeID).setSize(250,200);
+                            nodeDisplays.get(nodeID).setVisible(true);
+                            nodeContents.put(nodeID, new JLabel("<html></html>"));
+                            nodeDisplays.get(nodeID).add(nodeContents.get(nodeID));
                         }
                     }
                 } catch (IOException ex) {
@@ -117,7 +123,14 @@ public class ModivSim {
                 if (message == null) {
                     break;
                 }
-                nodes.get(message.getReceiverId()).receiveUpdate(message);
+                int curNode = message.getReceiverId();
+                nodes.get(curNode).receiveUpdate(message);
+                nodeContents.get(curNode).setText("<html> Distance Vector: " + "<BR>" +
+                        nodes.get(curNode).getDistanceVector().toString() + "<BR>" +
+                        "Forwarding Table: " + "<BR>" +
+                        nodes.get(curNode).getForwardingTable().toString()
+                        +"</html>");
+                //nodeDisplays.get(curNode).setVisible(true);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
