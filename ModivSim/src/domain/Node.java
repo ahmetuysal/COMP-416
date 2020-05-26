@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
-public class Node extends Thread {
+public class Node {
 
     private final int nodeId;
     private final Map<Integer, Integer> linkCost;
@@ -38,10 +38,6 @@ public class Node extends Thread {
             distanceTableRow.put(neighborId, cost);
             this.distanceTable.put(neighborId, distanceTableRow);
         });
-    }
-
-    public void run() {
-        sendUpdate();
     }
 
     public void changeDynamicLinkCost(int neighborId, int newCost) {

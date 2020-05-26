@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -84,7 +85,7 @@ public class ModivSim extends JFrame {
                             }
                             nodes.put(nodeID, new Node(nodeID, linkCost, linkBandwidth));
                             nodeDisplays.put(nodeID, new JFrame("Node " + nodeID));
-                            nodeDisplays.get(nodeID).setSize(250,200);
+                            nodeDisplays.get(nodeID).setSize(250, 200);
                             nodeDisplays.get(nodeID).setVisible(true);
                             nodeContents.put(nodeID, new JLabel("<html></html>"));
                             nodeDisplays.get(nodeID).add(nodeContents.get(nodeID));
@@ -98,14 +99,20 @@ public class ModivSim extends JFrame {
             e.printStackTrace();
         }
 
-        // create scheduler for each node and one for dynamic link update if there are any dynamic links
-        final ScheduledExecutorService service = Executors.newScheduledThreadPool(nodes.size() + (dynamicLinks.isEmpty() ? 0 : 1));
-        long startTime = System.currentTimeMillis();
+        // create scheduler one for round sendUpdate and counter, and one for dynamic link update if there are any dynamic links
+        final ScheduledExecutorService service = Executors.newScheduledThreadPool(dynamicLinks.isEmpty() ? 1 : 2);
+        AtomicInteger roundCount = new AtomicInteger(0);
         long roundPeriodMilliseconds = 200;
 
-        for (Node node : nodes.values()) {
-            service.scheduleAtFixedRate(node, 0, roundPeriodMilliseconds, TimeUnit.MILLISECONDS);
-        }
+        service.scheduleAtFixedRate(() -> {
+            boolean anyUpdates = false;
+            for (Node node : nodes.values()) {
+                anyUpdates |= node.sendUpdate();
+            }
+            if (anyUpdates) {
+                roundCount.incrementAndGet();
+            }
+        }, 0, roundPeriodMilliseconds, TimeUnit.MILLISECONDS);
 
         if (!dynamicLinks.isEmpty()) {
             service.scheduleAtFixedRate(() -> {
@@ -134,7 +141,7 @@ public class ModivSim extends JFrame {
                         nodes.get(curNode).getDistanceVector().toString() + "<BR>" +
                         "Forwarding Table: " + "<BR>" +
                         nodes.get(curNode).getForwardingTable().toString()
-                        +"</html>");
+                        + "</html>");
                 //nodeDisplays.get(curNode).setVisible(true);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -142,11 +149,8 @@ public class ModivSim extends JFrame {
         }
 
         service.shutdown();
-        long endTime = System.currentTimeMillis();
 
-        int estimatedRoundCount = (int) (((endTime - startTime - timeoutMilliseconds) / roundPeriodMilliseconds) + 1);
-
-        System.out.println("Simulation took " + estimatedRoundCount + " rounds");
+        System.out.println("Simulation took " + roundCount.get() + " rounds");
 
         for (Node node : nodes.values()) {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
