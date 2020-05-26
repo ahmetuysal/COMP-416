@@ -1,9 +1,12 @@
 package domain;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
@@ -15,11 +18,14 @@ public class FlowRouting {
     private final List<Flow> flows;
     private final List<Flow> activeFlows;
     private final List<Flow> queuedFlows;
+    private JTextArea appOutput;
+    private double completionTime = 0;
     private HashMap<Integer, Map<Integer, List<Integer>>> forwardingTables;
 
-    public FlowRouting(HashMap<Integer, Node> nodes, Set<Link> links) {
+    public FlowRouting(HashMap<Integer, Node> nodes, Set<Link> links, JTextArea appOutput) {
         this.nodes = nodes;
         this.links = links;
+        this.appOutput = appOutput;
         this.flows = new ArrayList<>();
         this.activeFlows = new ArrayList<>();
         this.queuedFlows = new ArrayList<>();
@@ -49,22 +55,35 @@ public class FlowRouting {
         double totalTimeSpent = 0;
 
         while (true) {
-            System.out.println(flows);
+            //appOutput.append("\n" + flows);
             for (Flow flow : flows) {
                 if (flow.isDone()) {
                     continue;
                 }
                 List<Link> path = findShortestAvailablePath(flow.getSourceId(), flow.getDestinationId());
                 if (path == null || path.isEmpty()) {
-                    System.out.println("Flow " + flow.getName() + " is queued");
+
+                    appOutput.append("\nFlow " + flow.getName() + " is queued");
                     queuedFlows.add(flow);
                 } else {
-                    // remove flow it it's in queue
+                    // remove flow if it's in queue
                     queuedFlows.remove(flow);
 
                     int pathBottleneck = path.stream().map(Link::getAvailableBandwidth).min(Integer::compareTo).get();
                     path.forEach(link -> link.reserveBandwidth(pathBottleneck));
                     flow.setAssignedPath(path);
+                    ArrayList<Integer> pathNodes = new ArrayList<Integer>();
+                    int prev = flow.getSourceId();
+                    int current = flow.getSourceId();
+                    pathNodes.add(current);
+                    for(int i = 0; i < path.size(); i++){
+                        current = path.get(i).getNode1Id();
+                        if(current == prev)
+                            current = path.get(i).getNode2Id();
+                        pathNodes.add(current);
+                        prev = current;
+                    }
+                    appOutput.append("\nA new path assigned to flow " + flow.getName() + ": " + pathNodes);
                     flow.setCompletionTime(flow.getRemainingDataMbits() / pathBottleneck);
                     flow.setUsedBandwidth(pathBottleneck);
                     activeFlows.add(flow);
@@ -74,6 +93,8 @@ public class FlowRouting {
                 break;
             Flow flowToFinish = activeFlows.stream().min(Comparator.comparingDouble(Flow::getCompletionTime)).get();
             flowToFinish.setDone(true);
+            completionTime += flowToFinish.getCompletionTime();
+            appOutput.append("\nFlow " + flowToFinish.getName() + " is finished after " + completionTime);
             double timeToNextStep = flowToFinish.getCompletionTime();
             totalTimeSpent += timeToNextStep;
             activeFlows.forEach(fl -> {
@@ -83,7 +104,8 @@ public class FlowRouting {
 
             activeFlows.clear();
         }
-        System.out.println("Flow simulation ended in " + totalTimeSpent);
+
+        appOutput.append("\nFlow simulation ended in " + totalTimeSpent);
     }
 
     private List<Link> findShortestAvailablePath(int sourceId, int destinationId) {

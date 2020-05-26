@@ -6,6 +6,7 @@ import domain.Message;
 import domain.Node;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -35,7 +37,7 @@ public class ModivSim extends JFrame {
 
         JFrame appWindow = new JFrame("ModivSim");
         appWindow.setSize(300, 300);
-        JLabel appOutput = new JLabel("Running simulation...");
+        JTextArea appOutput = new JTextArea("Running simulation...");
         appWindow.add(appOutput);
         appWindow.setVisible(true);
 
@@ -163,7 +165,7 @@ public class ModivSim extends JFrame {
             System.out.println(node.getNodeId() + ": " + node.getForwardingTable());
         }
 
-        FlowRouting flow = new FlowRouting(nodes, allLinks);
+        FlowRouting flow = new FlowRouting(nodes, allLinks, appOutput);
         flow.handle();
     }
 }
