@@ -1,35 +1,31 @@
 package domain;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 /**
  * @author Ahmet Uysal @ahmetuysal, Ipek Koprululu @ipekkoprululu, Furkan Sahbaz @fsahbaz
  */
 public class FlowRouting {
 
-    private final HashMap<Integer, Node> nodes;
     private final Set<Link> links;
     private final List<Flow> flows;
     private final List<Flow> activeFlows;
     private final List<Flow> queuedFlows;
-    private JTextArea appOutput;
-    private HashMap<Integer, Map<Integer, List<Integer>>> forwardingTables;
+    private final JTextArea appOutput;
+    private final HashMap<Integer, Map<Integer, List<Integer>>> forwardingTables;
 
     public FlowRouting(HashMap<Integer, Node> nodes, Set<Link> links, JTextArea appOutput) {
-        this.nodes = nodes;
         this.links = links;
         this.appOutput = appOutput;
         this.flows = new ArrayList<>();
         this.activeFlows = new ArrayList<>();
         this.queuedFlows = new ArrayList<>();
         this.forwardingTables = new HashMap<>();
-        for (Node node : this.nodes.values()) {
+        for (Node node : nodes.values()) {
             forwardingTables.put(node.getNodeId(), node.getForwardingTable());
         }
         registerFlows();
@@ -75,9 +71,9 @@ public class FlowRouting {
                     int prev = flow.getSourceId();
                     int current = flow.getSourceId();
                     pathNodes.add(current);
-                    for(int i = 0; i < path.size(); i++){
+                    for (int i = 0; i < path.size(); i++) {
                         current = path.get(i).getNode1Id();
-                        if(current == prev)
+                        if (current == prev)
                             current = path.get(i).getNode2Id();
                         pathNodes.add(current);
                         prev = current;

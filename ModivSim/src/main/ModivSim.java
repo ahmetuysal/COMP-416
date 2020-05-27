@@ -128,6 +128,7 @@ public class ModivSim extends JFrame {
                 dynamicLinks.forEach(dynamicLink -> {
                     if (rand.nextBoolean()) {
                         int newCost = rand.nextInt(10) + 1;
+                        dynamicLink.setCost(newCost);
                         nodes.get(dynamicLink.getNode1Id()).changeDynamicLinkCost(dynamicLink.getNode2Id(), newCost);
                         nodes.get(dynamicLink.getNode2Id()).changeDynamicLinkCost(dynamicLink.getNode1Id(), newCost);
                         System.out.println("Link between Node " + dynamicLink.getNode1Id() + " and Node " + dynamicLink.getNode2Id() + " changed its cost to " + newCost);
